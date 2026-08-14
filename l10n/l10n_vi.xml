@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+  <elements>
+    <!-- Fill Types -->
+    <e k="fillType_manure_dirty" v="Phân chuồng đã rải" />
+
+    <!-- General UI -->
+    <e k="manureGround_ui_header" v="Phân chuồng trên mặt đất" />
+
+    <!-- Game Settings -->
+    <e k="manureGround_settingTitle_hideGroundTexture" v="Ẩn kết cấu phân chuồng chuẩn" />
+    <e k="manureGround_settingDescription_hideGroundTexture" v="Xác định xem kết cấu địa hình bằng phẳng được tạo ra trong quá trình rải phân chuồng có bị ẩn hay không. Phân chuồng đã rải trên đồng vẫn hiển thị." />
+  </elements>
+</l10n>

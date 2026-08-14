@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+  <elements>
+    <!-- Fill Types -->
+    <e k="fillType_manure_dirty" v="Gunoi de Grajd Răspândit" />
+
+    <!-- General UI -->
+    <e k="manureGround_ui_header" v="Gunoi de Grajd pe Sol" />
+
+    <!-- Game Settings -->
+    <e k="manureGround_settingTitle_hideGroundTexture" v="Ascunde Textura Standard de Gunoi de Grajd" />
+    <e k="manureGround_settingDescription_hideGroundTexture" v="Determină dacă textura plană a terenului creată în timpul împrăștierii gunoiului de grajd este ascunsă. Gunoiul de grajd depus pe teren rămâne vizibil." />
+  </elements>
+</l10n>

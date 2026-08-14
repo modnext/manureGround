@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+  <elements>
+    <!-- Fill Types -->
+    <e k="fillType_manure_dirty" v="已撒有机肥" />
+
+    <!-- General UI -->
+    <e k="manureGround_ui_header" v="地面堆肥" />
+
+    <!-- Game Settings -->
+    <e k="manureGround_settingTitle_hideGroundTexture" v="隐藏标准有机肥纹理" />
+    <e k="manureGround_settingDescription_hideGroundTexture" v="决定是否隐藏撒施有机肥时产生的平坦地面纹理。农田中堆积的有机肥仍保持可见。" />
+  </elements>
+</l10n>

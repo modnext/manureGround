@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<map>
+  <densityMapHeightTypes>
+    <densityMapHeightType fillTypeName="MANURE_DIRTY" maxSurfaceAngle="35" fillToGroundScale="3.0" allowsSmoothing="false">
+      <collision scale="0.35" baseOffset="0.10" minOffset="0.10" maxOffset="1.20" />
+
+      <visualHeightMapping>
+        <mapping realValue="1" visualValue="2" />
+        <mapping realValue="3" visualValue="2" />
+        <mapping realValue="8" visualValue="4" />
+        <mapping realValue="64" visualValue="32" />
+      </visualHeightMapping>
+    </densityMapHeightType>
+  </densityMapHeightTypes>
+</map>

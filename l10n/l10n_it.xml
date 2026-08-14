@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+  <elements>
+    <!-- Fill Types -->
+    <e k="fillType_manure_dirty" v="Letame Sparso" />
+
+    <!-- General UI -->
+    <e k="manureGround_ui_header" v="Letame sul Terreno" />
+
+    <!-- Game Settings -->
+    <e k="manureGround_settingTitle_hideGroundTexture" v="Nascondi Texture Standard Letame" />
+    <e k="manureGround_settingDescription_hideGroundTexture" v="Determina se la texture piatta del terreno creata durante lo spargimento del letame viene nascosta. Il letame depositato sul campo rimane visibile." />
+  </elements>
+</l10n>

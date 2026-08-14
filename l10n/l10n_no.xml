@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+  <elements>
+    <!-- Fill Types -->
+    <e k="fillType_manure_dirty" v="Spredt Gjødsel" />
+
+    <!-- General UI -->
+    <e k="manureGround_ui_header" v="Gjødsel på Bakken" />
+
+    <!-- Game Settings -->
+    <e k="manureGround_settingTitle_hideGroundTexture" v="Skjul Standard Gjødseltekstur" />
+    <e k="manureGround_settingDescription_hideGroundTexture" v="Bestemmer om den flate terrengteksturen som opprettes under gjødselspredning skjules. Deponert gjødsel på jordet forblir synlig." />
+  </elements>
+</l10n>

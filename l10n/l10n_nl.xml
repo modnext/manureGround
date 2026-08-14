@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+  <elements>
+    <!-- Fill Types -->
+    <e k="fillType_manure_dirty" v="Verspreide Ruwe Mest" />
+
+    <!-- General UI -->
+    <e k="manureGround_ui_header" v="Mest op de Grond" />
+
+    <!-- Game Settings -->
+    <e k="manureGround_settingTitle_hideGroundTexture" v="Standaard Mesttextuur Verbergen" />
+    <e k="manureGround_settingDescription_hideGroundTexture" v="Bepaalt of de platte terreintextuur die tijdens het verspreiden van mest wordt aangemaakt, wordt verborgen. Gevallen mest op het veld blijft zichtbaar." />
+  </elements>
+</l10n>

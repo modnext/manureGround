@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<l10n>
+  <elements>
+    <!-- Fill Types -->
+    <e k="fillType_manure_dirty" v="Fumier épandu" />
+
+    <!-- General UI -->
+    <e k="manureGround_ui_header" v="Fumier au sol" />
+
+    <!-- Game Settings -->
+    <e k="manureGround_settingTitle_hideGroundTexture" v="Masquer la texture de fumier standard" />
+    <e k="manureGround_settingDescription_hideGroundTexture" v="Détermine si la texture plate du terrain créée lors de l'épandage du fumier est masquée. Le fumier déposé sur le champ reste visible." />
+  </elements>
+</l10n>

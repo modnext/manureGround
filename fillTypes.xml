@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" standalone="no" ?>
+<map xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <fillTypes>
+    <fillType name="MANURE_DIRTY" title="$l10n_fillType_manure_dirty" showOnPriceTable="false">
+      <physics massPerLiter="0.55" maxPhysicalSurfaceAngle="15" />
+      <economy pricePerLiter="0" />
+      <effects prioritizedEffectType="ParticleEffect">
+        <alphaClip beltAlphaScale="0.4" />
+      </effects>
+      <textures diffuse="fillPlanes/manureDirty_diffuse.dds" unitSize="1" blendContrast="0.5" noiseScale="0.5" fillBlendStart="0" porosityAtZeroRoughness="0.9" porosityAtFullRoughness="1" normal="fillPlanes/manureDirty_normal.dds" height="fillPlanes/manureDirty_height.dds" displacement="fillPlanes/manureDirty_displacement.dds" displacementMaxHeight="0.2" firmness="0.3" viscosity="0.5" distance="fillPlanes/distance/manureDirtyDistance_diffuse.dds" />
+    </fillType>
+  </fillTypes>
+</map>
