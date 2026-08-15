@@ -37,6 +37,7 @@ end
 ---Register all events that should be called for this specialization
 -- @param table vehicleType vehicle type
 function ManureGroundDepositor.registerEventListeners(vehicleType)
+  SpecializationUtil.registerEventListener(vehicleType, "onPreLoad", ManureGroundDepositor)
   SpecializationUtil.registerEventListener(vehicleType, "onLoad", ManureGroundDepositor)
   SpecializationUtil.registerEventListener(vehicleType, "onDelete", ManureGroundDepositor)
   SpecializationUtil.registerEventListener(vehicleType, "onStartWorkAreaProcessing", ManureGroundDepositor)
@@ -45,8 +46,8 @@ function ManureGroundDepositor.registerEventListeners(vehicleType)
   SpecializationUtil.registerEventListener(vehicleType, "onPreDetach", ManureGroundDepositor)
 end
 
----Called on loading
-function ManureGroundDepositor:onLoad(_)
+---Initializes state before asynchronous vehicle loading starts
+function ManureGroundDepositor:onPreLoad(_)
   local spec = self["spec_" .. modName .. ".manureGroundDepositor"]
   self.spec_manureGroundDepositor = spec
 
@@ -61,8 +62,14 @@ function ManureGroundDepositor:onLoad(_)
   spec.fieldPixels = 0
   spec.totalPixels = 0
   spec.scatterSequenceIndex = 0
-  spec.groundFillType = g_fillTypeManager:getFillTypeIndexByName("MANURE_DIRTY")
+  spec.groundFillType = nil
   spec.minimumPlacementLiters = 0
+end
+
+---Completes initialization after the vehicle model has loaded
+function ManureGroundDepositor:onLoad(_)
+  local spec = self.spec_manureGroundDepositor
+  spec.groundFillType = g_fillTypeManager:getFillTypeIndexByName("MANURE_DIRTY")
 
   if spec.groundFillType ~= nil and g_densityMapHeightManager ~= nil and g_densityMapHeightManager:getIsValid() then
     spec.minimumPlacementLiters = math.max(6, g_densityMapHeightManager:getMinValidLiterValue(spec.groundFillType) or 0)
@@ -375,13 +382,19 @@ end
 -- @param boolean hasProcessed true if the base work-area pass applied spray data
 function ManureGroundDepositor:restoreGroundTextures(hasProcessed)
   local spec = self.spec_manureGroundDepositor
+
+  if spec == nil then
+    return
+  end
+
   local data = ManureGroundDepositor.groundTextureData
   local manureGroundType = spec.capturedManureGroundType
+  local groundTextureAreas = spec.groundTextureAreas
 
-  if data ~= nil and manureGroundType ~= nil then
+  if data ~= nil and manureGroundType ~= nil and groundTextureAreas ~= nil then
     local operations = self:getGroundTextureOperations(data, manureGroundType)
 
-    for _, workArea in ipairs(spec.groundTextureAreas) do
+    for _, workArea in ipairs(groundTextureAreas) do
       local startX, _, startZ = getWorldTranslation(workArea.start)
       local widthX, _, widthZ = getWorldTranslation(workArea.width)
       local heightX, _, heightZ = getWorldTranslation(workArea.height)
@@ -398,7 +411,10 @@ function ManureGroundDepositor:restoreGroundTextures(hasProcessed)
     end
   end
 
-  table.clear(spec.groundTextureAreas)
+  if groundTextureAreas ~= nil then
+    table.clear(groundTextureAreas)
+  end
+
   spec.capturedManureGroundType = nil
 end
 
@@ -463,12 +479,19 @@ end
 
 ---Called when the spreader is deleted
 function ManureGroundDepositor:onDelete()
+  local spec = self.spec_manureGroundDepositor
+
+  if spec == nil then
+    return
+  end
+
   self:restoreGroundTextures(false)
 
   if self.isServer then
-    local spec = self.spec_manureGroundDepositor
+    if spec.applicationAreas ~= nil then
+      table.clear(spec.applicationAreas)
+    end
 
-    table.clear(spec.applicationAreas)
     spec.fieldRemainderLiters = 0
     spec.fieldPixels = 0
     spec.totalPixels = 0

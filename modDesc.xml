@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <modDesc descVersion="111">
   <author>aaw3k</author>
-  <version>1.0.0.0</version>
+  <version>1.0.0.1</version>
 
   <title>
     <en>Manure Ground</en>
@@ -23,6 +23,9 @@ Features:
 
 The appearance and shape of deposited manure may vary slightly depending on the map's terrain configuration.
 
+Changelog Version 1.0.0.1:
+- Fixed manure spreader preview overlap during rapid vehicle switching in the shop.
+
 For more info, bug reports, or to contribute, check out GitHub (modnext/manureGround).
 ]]></en>
     <de><![CDATA[
@@ -35,6 +38,9 @@ Funktionen:
 - Option in den Spieleinstellungen zum Ausblenden der flachen Standard-Misttextur.
 
 Das Aussehen und die Form des abgelegten Mists können je nach Terrain-Konfiguration der Karte leicht variieren.
+
+Changelog Version 1.0.0.1:
+- Überlappende Miststreuer-Vorschauen beim schnellen Fahrzeugwechsel im Shop behoben.
 
 Für mehr Infos, Fehlermeldungen oder kleine Beiträge schau einfach auf GitHub vorbei (modnext/manureGround).
 ]]></de>
@@ -49,6 +55,9 @@ Fonctionnalités :
 
 L'apparence et la forme du fumier déposé peuvent varier légèrement selon la configuration du terrain de la carte.
 
+Changelog Version 1.0.0.1 :
+- Correction du chevauchement des aperçus d'épandeurs à fumier lors d'un changement rapide de véhicule dans le magasin.
+
 Pour plus d'infos, signaler un bug ou apporter votre aide, rendez-vous sur GitHub (modnext/manureGround).
 ]]></fr>
     <pl><![CDATA[
@@ -62,6 +71,9 @@ Funkcje:
 
 Wygląd i kształt obornika mogą się nieznacznie różnić zależnie od konfiguracji terenu danej mapy.
 
+Changelog Version 1.0.0.1:
+- Naprawiono nakładanie się podglądów rozrzutników obornika podczas szybkiego przełączania pojazdów w sklepie.
+
 Więcej informacji, zgłaszanie błędów czy pomoc w rozwoju znajdziecie na moim GitHubie (modnext/manureGround).
 ]]></pl>
     <ru><![CDATA[
@@ -74,6 +86,9 @@ Więcej informacji, zgłaszanie błędów czy pomoc w rozwoju znajdziecie na moi
 - Опция в настройках игры, позволяющая скрыть стандартную плоскую текстуру навоза.
 
 Внешний вид и форма разложенного навоза могут немного различаться в зависимости от конфигурации рельефа карты.
+
+Changelog Version 1.0.0.1:
+- Исправлено наложение предпросмотров разбрасывателей навоза при быстром переключении техники в магазине.
 
 Для получения дополнительной информации, сообщений об ошибках или участия загляните на GitHub (modnext/manureGround).
 ]]></ru>
