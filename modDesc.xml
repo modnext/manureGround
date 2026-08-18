@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <modDesc descVersion="111">
   <author>aaw3k</author>
-  <version>1.0.0.1</version>
+  <version>1.0.1.0</version>
 
   <title>
     <en>Manure Ground</en>
@@ -23,10 +23,13 @@ Features:
 
 The appearance and shape of deposited manure may vary slightly depending on the map's terrain configuration.
 
-Changelog Version 1.0.0.1:
-- Fixed manure spreader preview overlap during rapid vehicle switching in the shop.
+Changelog Version 1.0.1.0:
+- Fixed overlapping manure spreader previews when quickly switching vehicles in the shop (1.0.0.1)
+- Improved manure's resistance to wheel compaction to work around a game issue that caused holes when another layer was deposited
+- Improved manure distribution by creating more, smaller piles
+- Added tire-track texture preservation and removed the clearing of other materials during manure deposition
 
-For more info, bug reports, or to contribute, check out GitHub (modnext/manureGround).
+For more information or to report a bug, please visit GitHub (modnext/manureGround).
 ]]></en>
     <de><![CDATA[
 Fügt den Feldern beim Einsatz von Miststreuern abgelegten Mist hinzu. Anstelle von flachen Bodentexturen liegt der Mist tatsächlich auf dem Boden.
@@ -39,10 +42,13 @@ Funktionen:
 
 Das Aussehen und die Form des abgelegten Mists können je nach Terrain-Konfiguration der Karte leicht variieren.
 
-Changelog Version 1.0.0.1:
-- Überlappende Miststreuer-Vorschauen beim schnellen Fahrzeugwechsel im Shop behoben.
+Änderungsprotokoll Version 1.0.1.0:
+- Überlappende Vorschauen von Miststreuern beim schnellen Fahrzeugwechsel im Shop behoben (1.0.0.1)
+- Die Widerstandsfähigkeit von Mist gegen Verdichtung durch Räder verbessert, um einen Spielfehler zu umgehen, der beim Auftragen einer weiteren Schicht Vertiefungen verursachte
+- Die Mistverteilung durch mehr und kleinere Haufen verbessert
+- Das Beibehalten von Reifenspuren hinzugefügt und das Löschen anderer Materialien beim Ablegen von Mist deaktiviert
 
-Für mehr Infos, Fehlermeldungen oder kleine Beiträge schau einfach auf GitHub vorbei (modnext/manureGround).
+Für weitere Informationen oder um einen Fehler zu melden, besuchen Sie bitte GitHub (modnext/manureGround).
 ]]></de>
     <fr><![CDATA[
 Ajoute du fumier déposé sur les champs lors de l'utilisation d'épandeurs à fumier. Au lieu de textures de sol plates, le fumier repose réellement sur le sol.
@@ -55,10 +61,13 @@ Fonctionnalités :
 
 L'apparence et la forme du fumier déposé peuvent varier légèrement selon la configuration du terrain de la carte.
 
-Changelog Version 1.0.0.1 :
-- Correction du chevauchement des aperçus d'épandeurs à fumier lors d'un changement rapide de véhicule dans le magasin.
+Journal des modifications version 1.0.1.0:
+- Correction du chevauchement des aperçus d'épandeurs à fumier lors d'un changement rapide de véhicule dans le magasin (1.0.0.1)
+- Amélioration de la résistance du fumier au compactage par les roues afin de contourner un problème du jeu qui provoquait des creux lors du dépôt d'une nouvelle couche
+- Amélioration de la répartition du fumier avec davantage de petits tas
+- Ajout de la conservation des traces de pneus et suppression de l'effacement des autres matériaux lors du dépôt de fumier
 
-Pour plus d'infos, signaler un bug ou apporter votre aide, rendez-vous sur GitHub (modnext/manureGround).
+Pour plus d'informations ou pour signaler un bug, veuillez visiter GitHub (modnext/manureGround).
 ]]></fr>
     <pl><![CDATA[
 Dodaje usypany obornik na polach podczas pracy rozrzutnikami. Zamiast płaskiego malowania na ziemi, obornik faktycznie leży na glebie.
@@ -71,10 +80,13 @@ Funkcje:
 
 Wygląd i kształt obornika mogą się nieznacznie różnić zależnie od konfiguracji terenu danej mapy.
 
-Changelog Version 1.0.0.1:
-- Naprawiono nakładanie się podglądów rozrzutników obornika podczas szybkiego przełączania pojazdów w sklepie.
+Lista zmian w wersji 1.0.1.0:
+- Naprawiono nakładanie się podglądów rozrzutników obornika podczas szybkiego przełączania pojazdów w sklepie (1.0.0.1)
+- Poprawiono odporność obornika na ugniatanie przez koła, aby obejść błąd gry powodujący zagłębienia podczas nakładania kolejnej warstwy
+- Poprawiono rozkładanie obornika poprzez tworzenie większej liczby mniejszych kupek
+- Dodano zachowanie tekstur śladów opon i usunięto czyszczenie innych materiałów podczas usypywania obornika
 
-Więcej informacji, zgłaszanie błędów czy pomoc w rozwoju znajdziecie na moim GitHubie (modnext/manureGround).
+Aby uzyskać więcej informacji lub zgłosić błąd, odwiedź GitHub (modnext/manureGround).
 ]]></pl>
     <ru><![CDATA[
 Добавляет уложенный навоз на поля при использовании разбрасывателей. Вместо плоских текстур на земле навоз действительно лежит на почве.
@@ -87,10 +99,13 @@ Więcej informacji, zgłaszanie błędów czy pomoc w rozwoju znajdziecie na moi
 
 Внешний вид и форма разложенного навоза могут немного различаться в зависимости от конфигурации рельефа карты.
 
-Changelog Version 1.0.0.1:
-- Исправлено наложение предпросмотров разбрасывателей навоза при быстром переключении техники в магазине.
+Журнал изменений версии 1.0.1.0:
+- Исправлено наложение предварительных изображений разбрасывателей навоза при быстром переключении техники в магазине (1.0.0.1)
+- Улучшена устойчивость навоза к уплотнению колёсами, чтобы обойти ошибку игры, вызывавшую ямы при нанесении следующего слоя
+- Улучшено распределение навоза за счёт большего количества небольших куч
+- Добавлено сохранение следов шин и удалена очистка других материалов при укладке навоза
 
-Для получения дополнительной информации, сообщений об ошибках или участия загляните на GitHub (modnext/manureGround).
+Для получения дополнительной информации или сообщения об ошибке посетите GitHub (modnext/manureGround).
 ]]></ru>
   </description>
 
