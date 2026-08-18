@@ -561,22 +561,25 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
     return
   end
 
-  local depositPositions = {}
+  local maxDepositCount = 20
+  local pileHalfLength = 0.1
+  local pileRadius = 0.35
+  local depositPositions = table.create(maxDepositCount * 2)
   local depositCount = 0
-  local targetDepositCount = math.min(requestedPiles, 10)
+  local targetDepositCount = math.min(requestedPiles, maxDepositCount)
 
-  for _ = 1, 10 do
+  for _ = 1, maxDepositCount do
     local sequenceIndex = spec.scatterSequenceIndex
     local columnIndex = math.floor(sequenceIndex / 2)
 
     if sequenceIndex % 2 == 1 then
-      columnIndex = 9 - columnIndex
+      columnIndex = maxDepositCount - 1 - columnIndex
     end
 
-    spec.scatterSequenceIndex = (sequenceIndex + 1) % 10
+    spec.scatterSequenceIndex = (sequenceIndex + 1) % maxDepositCount
 
     for _ = 1, 12 do
-      local sideFactor = (columnIndex + math.random()) / 10
+      local sideFactor = (columnIndex + math.random()) / maxDepositCount
       local sideOffset = minSideOffset + sideFactor * workingWidth
       local centerX = nil
       local centerZ = nil
@@ -626,10 +629,10 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
       end
 
       if centerX ~= nil then
-        local startX = centerX - sideDirectionX * 0.1
-        local startZ = centerZ - sideDirectionZ * 0.1
-        local endX = centerX + sideDirectionX * 0.1
-        local endZ = centerZ + sideDirectionZ * 0.1
+        local startX = centerX - sideDirectionX * pileHalfLength
+        local startZ = centerZ - sideDirectionZ * pileHalfLength
+        local endX = centerX + sideDirectionX * pileHalfLength
+        local endZ = centerZ + sideDirectionZ * pileHalfLength
 
         if self:getIsLineOnField(startX, startZ, endX, endZ) then
           depositCount = depositCount + 1
@@ -650,61 +653,27 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
   end
 
   local pileLiters = requestedPiles * minimumPlacementLiters / depositCount
-  local perpendicularX = -sideDirectionZ
-  local perpendicularZ = sideDirectionX
-  local modifiers = nil
+  local tireTrackSystem = g_currentMission.tireTrackSystem
+  local tireTrackSystemId = tireTrackSystem.tireTrackSystemId
+
+  tireTrackSystem.tireTrackSystemId = 0
 
   for index = 1, depositCount do
     local centerX = depositPositions[index * 2 - 1]
     local centerZ = depositPositions[index * 2]
-    local startX = centerX - sideDirectionX * 0.1
-    local startZ = centerZ - sideDirectionZ * 0.1
-    local endX = centerX + sideDirectionX * 0.1
-    local endZ = centerZ + sideDirectionZ * 0.1
+    local startX = centerX - sideDirectionX * pileHalfLength
+    local startZ = centerZ - sideDirectionZ * pileHalfLength
+    local endX = centerX + sideDirectionX * pileHalfLength
+    local endZ = centerZ + sideDirectionZ * pileHalfLength
     local startY = getTerrainHeightAtWorldPos(g_terrainNode, startX, 0, startZ)
     local endY = getTerrainHeightAtWorldPos(g_terrainNode, endX, 0, endZ)
-    local placedLiters, lineOffset = DensityMapHeightUtil.tipToGroundAroundLine(self, pileLiters, spec.groundFillType, startX, startY, startZ, endX, endY, endZ, 0, 0.35, nil, false, nil, false, true)
+
+    local placedLiters = DensityMapHeightUtil.tipToGroundAroundLine(self, pileLiters, spec.groundFillType, startX, startY, startZ, endX, endY, endZ, 0, pileRadius, nil, false, nil, false, true)
     placedLiters = math.clamp(placedLiters or 0, 0, pileLiters)
-
-    local remainingLiters = pileLiters - placedLiters
-
-    if remainingLiters > 0.001 and DensityMapHeightUtil.modifiersCache ~= nil then
-      modifiers = modifiers or DensityMapHeightUtil.modifiersCache.manureGroundDepositor
-
-      if modifiers == nil then
-        local heightModifier = DensityMapModifier.new(DensityMapHeightUtil.terrainDetailHeightId, DensityMapHeightUtil.heightFirstChannel, DensityMapHeightUtil.heightNumChannels)
-        local typeModifier = DensityMapModifier.new(DensityMapHeightUtil.terrainDetailHeightId, DensityMapHeightUtil.typeFirstChannel, DensityMapHeightUtil.typeNumChannels)
-        local conflictingTypeFilter = DensityMapFilter.new(typeModifier)
-        conflictingTypeFilter:setValueCompareParams(DensityValueCompareType.NOTEQUAL, groundHeightType.index)
-
-        modifiers = {
-          heightModifier = heightModifier,
-          typeModifier = typeModifier,
-          conflictingTypeFilter = conflictingTypeFilter,
-        }
-        DensityMapHeightUtil.modifiersCache.manureGroundDepositor = modifiers
-      end
-
-      local expandedStartX = startX - sideDirectionX * 0.35
-      local expandedStartZ = startZ - sideDirectionZ * 0.35
-      local x0 = expandedStartX - perpendicularX * 0.35
-      local z0 = expandedStartZ - perpendicularZ * 0.35
-      local x1 = endX + sideDirectionX * 0.35 - perpendicularX * 0.35
-      local z1 = endZ + sideDirectionZ * 0.35 - perpendicularZ * 0.35
-      local x2 = expandedStartX + perpendicularX * 0.35
-      local z2 = expandedStartZ + perpendicularZ * 0.35
-
-      modifiers.heightModifier:setParallelogramWorldCoords(x0, z0, x1, z1, x2, z2, DensityCoordType.POINT_POINT_POINT)
-      modifiers.typeModifier:setParallelogramWorldCoords(x0, z0, x1, z1, x2, z2, DensityCoordType.POINT_POINT_POINT)
-      modifiers.heightModifier:executeSet(0, modifiers.conflictingTypeFilter)
-      modifiers.typeModifier:executeSet(0, modifiers.conflictingTypeFilter)
-
-      local retryLiters = DensityMapHeightUtil.tipToGroundAroundLine(self, remainingLiters, spec.groundFillType, startX, startY, startZ, endX, endY, endZ, 0, 0.35, lineOffset, false, nil, false, true)
-      placedLiters = placedLiters + math.clamp(retryLiters or 0, 0, remainingLiters)
-    end
-
     spec.fieldRemainderLiters = math.max(spec.fieldRemainderLiters - placedLiters, 0)
   end
+
+  tireTrackSystem.tireTrackSystemId = tireTrackSystemId
 end
 
 ---Checks if the full deposit line is on a field
