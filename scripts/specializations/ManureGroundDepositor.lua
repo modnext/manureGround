@@ -276,6 +276,8 @@ function ManureGroundDepositor:getGroundTextureOperations(data, manureGroundType
     clear = DensityMapMultiModifier.new(),
     restore = DensityMapMultiModifier.new(),
   }
+  local emptySprayFilter = DensityMapFilter.new(data.sprayTypeMapId, data.sprayTypeFirstChannel, data.sprayTypeNumChannels)
+  emptySprayFilter:setValueCompareParams(DensityValueCompareType.EQUAL, 0)
   operations.capture:addExecuteSet(0, data.snapshotModifier)
 
   for groundType = 1, data.sprayTypeMaxValue - 1 do
@@ -285,7 +287,7 @@ function ManureGroundDepositor:getGroundTextureOperations(data, manureGroundType
 
     local snapshotFilter = DensityMapFilter.new(data.snapshotMap, 0, data.sprayTypeNumChannels)
     snapshotFilter:setValueCompareParams(DensityValueCompareType.EQUAL, groundType)
-    operations.restore:addExecuteSet(groundType, data.sprayTypeModifier, snapshotFilter)
+    operations.restore:addExecuteSet(groundType, data.sprayTypeModifier, snapshotFilter, emptySprayFilter)
   end
 
   local manureFilter = DensityMapFilter.new(data.sprayTypeMapId, data.sprayTypeFirstChannel, data.sprayTypeNumChannels)
@@ -361,8 +363,10 @@ function ManureGroundDepositor:captureGroundTextures()
   end
 
   local operations = self:getGroundTextureOperations(data, sprayType.sprayGroundType)
+  local groundTextureAreas = spec.groundTextureAreas
   spec.capturedManureGroundType = sprayType.sprayGroundType
 
+  -- Capture every area before injecting hidden manure so overlapping work areas keep the original texture.
   for _, workArea in ipairs(self:getTypedWorkAreas(WorkAreaType.SPRAYER)) do
     if self:getIsWorkAreaActive(workArea) then
       local startX, _, startZ = getWorldTranslation(workArea.start)
@@ -371,10 +375,17 @@ function ManureGroundDepositor:captureGroundTextures()
 
       operations.capture:updateParallelogramWorldCoords(startX, startZ, widthX, widthZ, heightX, heightZ, DensityCoordType.POINT_POINT_POINT)
       operations.capture:execute()
-      operations.inject:updateParallelogramWorldCoords(startX, startZ, widthX, widthZ, heightX, heightZ, DensityCoordType.POINT_POINT_POINT)
-      operations.inject:execute()
-      spec.groundTextureAreas[#spec.groundTextureAreas + 1] = workArea
+      groundTextureAreas[#groundTextureAreas + 1] = workArea
     end
+  end
+
+  for _, workArea in ipairs(groundTextureAreas) do
+    local startX, _, startZ = getWorldTranslation(workArea.start)
+    local widthX, _, widthZ = getWorldTranslation(workArea.width)
+    local heightX, _, heightZ = getWorldTranslation(workArea.height)
+
+    operations.inject:updateParallelogramWorldCoords(startX, startZ, widthX, widthZ, heightX, heightZ, DensityCoordType.POINT_POINT_POINT)
+    operations.inject:execute()
   end
 end
 
@@ -519,6 +530,12 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
     return
   end
 
+  local tireTrackSystem = g_currentMission.tireTrackSystem
+
+  if tireTrackSystem == nil then
+    return
+  end
+
   local fieldFactor = math.clamp(spec.fieldPixels / spec.totalPixels, 0, 1)
   local availableLiters = spec.fieldRemainderLiters + consumedLiters * fieldFactor
   local requestedPiles = math.floor(availableLiters / minimumPlacementLiters)
@@ -653,7 +670,6 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
   end
 
   local pileLiters = requestedPiles * minimumPlacementLiters / depositCount
-  local tireTrackSystem = g_currentMission.tireTrackSystem
   local tireTrackSystemId = tireTrackSystem.tireTrackSystemId
 
   tireTrackSystem.tireTrackSystemId = 0
