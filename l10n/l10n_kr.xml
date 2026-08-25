@@ -3,12 +3,5 @@
   <elements>
     <!-- Fill Types -->
     <e k="fillType_manure_dirty" v="살포된 퇴비" />
-
-    <!-- General UI -->
-    <e k="manureGround_ui_header" v="지면 퇴비" />
-
-    <!-- Game Settings -->
-    <e k="manureGround_settingTitle_hideGroundTexture" v="기본 퇴비 텍스처 숨기기" />
-    <e k="manureGround_settingDescription_hideGroundTexture" v="퇴비 살포 중 생성되는 평평한 지형 텍스처를 숨길지 여부를 결정합니다. 밭에 쌓인 퇴비는 계속 표시됩니다." />
   </elements>
 </l10n>

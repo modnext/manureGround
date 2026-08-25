@@ -19,10 +19,6 @@ end
 ---Register functions
 -- @param table vehicleType vehicle type
 function ManureGroundDepositor.registerFunctions(vehicleType)
-  SpecializationUtil.registerFunction(vehicleType, "getGroundTextureData", ManureGroundDepositor.getGroundTextureData)
-  SpecializationUtil.registerFunction(vehicleType, "getGroundTextureOperations", ManureGroundDepositor.getGroundTextureOperations)
-  SpecializationUtil.registerFunction(vehicleType, "captureGroundTextures", ManureGroundDepositor.captureGroundTextures)
-  SpecializationUtil.registerFunction(vehicleType, "restoreGroundTextures", ManureGroundDepositor.restoreGroundTextures)
   SpecializationUtil.registerFunction(vehicleType, "finishConsumptionTracking", ManureGroundDepositor.finishConsumptionTracking)
   SpecializationUtil.registerFunction(vehicleType, "depositConsumedManure", ManureGroundDepositor.depositConsumedManure)
   SpecializationUtil.registerFunction(vehicleType, "getIsLineOnField", ManureGroundDepositor.getIsLineOnField)
@@ -56,8 +52,6 @@ function ManureGroundDepositor:onPreLoad(_)
   spec.sourceFillLevel = 0
   spec.externalUsage = 0
   spec.applicationAreas = {}
-  spec.groundTextureAreas = {}
-  spec.capturedManureGroundType = nil
   spec.fieldRemainderLiters = 0
   spec.fieldPixels = 0
   spec.totalPixels = 0
@@ -78,8 +72,6 @@ end
 
 ---Called on start work area processing
 function ManureGroundDepositor:onStartWorkAreaProcessing()
-  self:captureGroundTextures()
-
   if not self.isServer then
     return
   end
@@ -135,21 +127,7 @@ end
 -- @return float totalArea total area
 function ManureGroundDepositor:processSprayerArea(superFunc, workArea, dt)
   local changedArea, totalArea = superFunc(self, workArea, dt)
-  local sprayerSpec = self.spec_sprayer
-  local parameters = sprayerSpec.workAreaParameters
-  local showGroundTexture = g_manureGroundSystem ~= nil and not g_manureGroundSystem:getHideGroundTexture() and not g_modIsLoaded["FS25_precisionFarming"]
-
-  if showGroundTexture and sprayerSpec.isManureSpreader and parameters.sprayFillType == FillType.MANURE and parameters.isActive then
-    local sprayType = g_sprayTypeManager:getSprayTypeByIndex(parameters.sprayType)
-
-    if sprayType ~= nil and sprayType.sprayGroundType ~= nil and sprayType.sprayGroundType > 0 then
-      local startX, _, startZ = getWorldTranslation(workArea.start)
-      local widthX, _, widthZ = getWorldTranslation(workArea.width)
-      local heightX, _, heightZ = getWorldTranslation(workArea.height)
-
-      FSDensityMapUtil.setGroundTypeLayerArea(startX, startZ, widthX, widthZ, heightX, heightZ, sprayType.sprayGroundType)
-    end
-  end
+  local parameters = self.spec_sprayer.workAreaParameters
 
   if not self.isServer then
     return changedArea, totalArea
@@ -191,248 +169,8 @@ function ManureGroundDepositor:processSprayerArea(superFunc, workArea, dt)
   return changedArea, totalArea
 end
 
----Creates the reusable density-map data used to preserve existing ground textures
--- @return table data ground texture data or nil
-function ManureGroundDepositor:getGroundTextureData()
-  local data = ManureGroundDepositor.groundTextureData
-
-  if data ~= nil then
-    return data
-  end
-
-  local fieldGroundSystem = g_currentMission ~= nil and g_currentMission.fieldGroundSystem or nil
-
-  if fieldGroundSystem == nil then
-    return nil
-  end
-
-  local sprayTypeMapId, sprayTypeFirstChannel, sprayTypeNumChannels = fieldGroundSystem:getDensityMapData(FieldDensityMap.SPRAY_TYPE)
-  local sprayTypeMaxValue = fieldGroundSystem:getMaxValue(FieldDensityMap.SPRAY_TYPE)
-
-  if sprayTypeMapId == nil or sprayTypeNumChannels == nil or sprayTypeNumChannels <= 0 or sprayTypeMaxValue == nil then
-    return nil
-  end
-
-  local snapshotMap = createBitVectorMap("manureGroundTextureSnapshot")
-  local hiddenManureMap = createBitVectorMap("manureGroundHiddenManure")
-  local densityMapSize = getDensityMapSize(sprayTypeMapId)
-  local manureSprayType = g_sprayTypeManager:getSprayTypeByFillTypeIndex(FillType.MANURE)
-
-  if densityMapSize == nil or densityMapSize <= 0 then
-    delete(snapshotMap)
-    delete(hiddenManureMap)
-    return nil
-  end
-
-  loadBitVectorMapNew(snapshotMap, densityMapSize, densityMapSize, sprayTypeNumChannels, false)
-  loadBitVectorMapNew(hiddenManureMap, densityMapSize, densityMapSize, 1, false)
-
-  data = {
-    snapshotMap = snapshotMap,
-    hiddenManureMap = hiddenManureMap,
-    sprayTypeMapId = sprayTypeMapId,
-    sprayTypeFirstChannel = sprayTypeFirstChannel,
-    sprayTypeNumChannels = sprayTypeNumChannels,
-    sprayTypeMaxValue = sprayTypeMaxValue,
-    manureGroundType = manureSprayType ~= nil and manureSprayType.sprayGroundType or nil,
-    snapshotModifier = DensityMapModifier.new(snapshotMap, 0, sprayTypeNumChannels, g_terrainNode),
-    hiddenManureModifier = DensityMapModifier.new(hiddenManureMap, 0, 1, g_terrainNode),
-    hiddenManureFilter = DensityMapFilter.new(hiddenManureMap, 0, 1),
-    sprayTypeModifier = DensityMapModifier.new(sprayTypeMapId, sprayTypeFirstChannel, sprayTypeNumChannels, g_terrainNode),
-    operations = {},
-  }
-  data.hiddenManureFilter:setValueCompareParams(DensityValueCompareType.EQUAL, 1)
-  ManureGroundDepositor.groundTextureData = data
-
-  return data
-end
-
----Deletes the temporary map used to preserve existing ground textures
-function ManureGroundDepositor.deleteGroundTextureData()
-  local data = ManureGroundDepositor.groundTextureData
-
-  if data ~= nil then
-    delete(data.snapshotMap)
-    delete(data.hiddenManureMap)
-    ManureGroundDepositor.groundTextureData = nil
-  end
-end
-
----Creates batched capture and restore operations for the manure terrain value
--- @param table data ground texture data
--- @param integer manureGroundType manure terrain value
--- @return table operations capture and restore operations
-function ManureGroundDepositor:getGroundTextureOperations(data, manureGroundType)
-  local operations = data.operations[manureGroundType]
-
-  if operations ~= nil then
-    return operations
-  end
-
-  operations = {
-    capture = DensityMapMultiModifier.new(),
-    inject = DensityMapMultiModifier.new(),
-    mark = DensityMapMultiModifier.new(),
-    clear = DensityMapMultiModifier.new(),
-    restore = DensityMapMultiModifier.new(),
-  }
-  local emptySprayFilter = DensityMapFilter.new(data.sprayTypeMapId, data.sprayTypeFirstChannel, data.sprayTypeNumChannels)
-  emptySprayFilter:setValueCompareParams(DensityValueCompareType.EQUAL, 0)
-  operations.capture:addExecuteSet(0, data.snapshotModifier)
-
-  for groundType = 1, data.sprayTypeMaxValue - 1 do
-    local sourceFilter = DensityMapFilter.new(data.sprayTypeMapId, data.sprayTypeFirstChannel, data.sprayTypeNumChannels)
-    sourceFilter:setValueCompareParams(DensityValueCompareType.EQUAL, groundType)
-    operations.capture:addExecuteSet(groundType, data.snapshotModifier, sourceFilter)
-
-    local snapshotFilter = DensityMapFilter.new(data.snapshotMap, 0, data.sprayTypeNumChannels)
-    snapshotFilter:setValueCompareParams(DensityValueCompareType.EQUAL, groundType)
-    operations.restore:addExecuteSet(groundType, data.sprayTypeModifier, snapshotFilter, emptySprayFilter)
-  end
-
-  local manureFilter = DensityMapFilter.new(data.sprayTypeMapId, data.sprayTypeFirstChannel, data.sprayTypeNumChannels)
-  manureFilter:setValueCompareParams(DensityValueCompareType.EQUAL, manureGroundType)
-  operations.inject:addExecuteSet(manureGroundType, data.sprayTypeModifier, data.hiddenManureFilter)
-  operations.mark:addExecuteSet(1, data.hiddenManureModifier, manureFilter)
-  operations.clear:addExecuteSet(0, data.sprayTypeModifier, manureFilter)
-
-  data.operations[manureGroundType] = operations
-
-  return operations
-end
-
----Clears hidden manure markers when the game removes spray data
-function ManureGroundDepositor.clearHiddenManureArea(startWorldX, startWorldZ, widthWorldX, widthWorldZ, heightWorldX, heightWorldZ, blockedSprayTypeIndex, customFilter)
-  local data = ManureGroundDepositor.groundTextureData
-
-  if data == nil then
-    return
-  end
-
-  if blockedSprayTypeIndex ~= nil then
-    local blockedSprayType = g_sprayTypeManager:getSprayTypeByIndex(blockedSprayTypeIndex)
-
-    if blockedSprayType ~= nil and data.manureGroundType ~= nil and blockedSprayType.sprayGroundType == data.manureGroundType then
-      return
-    end
-  end
-
-  data.hiddenManureModifier:setParallelogramWorldCoords(startWorldX, startWorldZ, widthWorldX, widthWorldZ, heightWorldX, heightWorldZ, DensityCoordType.POINT_POINT_POINT)
-  data.hiddenManureModifier:executeSet(0, customFilter)
-end
-
----Clears hidden manure markers when another spray layer is applied
-function ManureGroundDepositor.clearHiddenManureForGroundType(startWorldX, startWorldZ, widthWorldX, widthWorldZ, heightWorldX, heightWorldZ, groundType)
-  local data = ManureGroundDepositor.groundTextureData
-
-  if data ~= nil and groundType ~= data.manureGroundType then
-    ManureGroundDepositor.clearHiddenManureArea(startWorldX, startWorldZ, widthWorldX, widthWorldZ, heightWorldX, heightWorldZ)
-  end
-end
-
----Captures existing ground textures before the spreader changes them
-function ManureGroundDepositor:captureGroundTextures()
-  local spec = self.spec_manureGroundDepositor
-  local sprayerSpec = self.spec_sprayer
-  local parameters = sprayerSpec.workAreaParameters
-
-  self:restoreGroundTextures(false)
-
-  if g_manureGroundSystem == nil or not g_manureGroundSystem:getHideGroundTexture() or not sprayerSpec.isManureSpreader or parameters.sprayFillType ~= FillType.MANURE or parameters.sprayFillLevel <= 0 then
-    return
-  end
-
-  if not self.isServer and self.currentUpdateDistance > Sprayer.CLIENT_DM_UPDATE_RADIUS then
-    return
-  end
-
-  local sprayType = g_sprayTypeManager:getSprayTypeByIndex(parameters.sprayType)
-
-  if sprayType == nil or sprayType.sprayGroundType == nil or sprayType.sprayGroundType <= 0 then
-    return
-  end
-
-  local data = self:getGroundTextureData()
-
-  if data == nil then
-    return
-  end
-
-  if sprayType.sprayGroundType >= data.sprayTypeMaxValue then
-    return
-  end
-
-  local operations = self:getGroundTextureOperations(data, sprayType.sprayGroundType)
-  local groundTextureAreas = spec.groundTextureAreas
-  spec.capturedManureGroundType = sprayType.sprayGroundType
-
-  -- Capture every area before injecting hidden manure so overlapping work areas keep the original texture.
-  for _, workArea in ipairs(self:getTypedWorkAreas(WorkAreaType.SPRAYER)) do
-    if self:getIsWorkAreaActive(workArea) then
-      local startX, _, startZ = getWorldTranslation(workArea.start)
-      local widthX, _, widthZ = getWorldTranslation(workArea.width)
-      local heightX, _, heightZ = getWorldTranslation(workArea.height)
-
-      operations.capture:updateParallelogramWorldCoords(startX, startZ, widthX, widthZ, heightX, heightZ, DensityCoordType.POINT_POINT_POINT)
-      operations.capture:execute()
-      groundTextureAreas[#groundTextureAreas + 1] = workArea
-    end
-  end
-
-  for _, workArea in ipairs(groundTextureAreas) do
-    local startX, _, startZ = getWorldTranslation(workArea.start)
-    local widthX, _, widthZ = getWorldTranslation(workArea.width)
-    local heightX, _, heightZ = getWorldTranslation(workArea.height)
-
-    operations.inject:updateParallelogramWorldCoords(startX, startZ, widthX, widthZ, heightX, heightZ, DensityCoordType.POINT_POINT_POINT)
-    operations.inject:execute()
-  end
-end
-
----Restores previous textures and removes only manure applied during a processed pass
--- @param boolean hasProcessed true if the base work-area pass applied spray data
-function ManureGroundDepositor:restoreGroundTextures(hasProcessed)
-  local spec = self.spec_manureGroundDepositor
-
-  if spec == nil then
-    return
-  end
-
-  local data = ManureGroundDepositor.groundTextureData
-  local manureGroundType = spec.capturedManureGroundType
-  local groundTextureAreas = spec.groundTextureAreas
-
-  if data ~= nil and manureGroundType ~= nil and groundTextureAreas ~= nil then
-    local operations = self:getGroundTextureOperations(data, manureGroundType)
-
-    for _, workArea in ipairs(groundTextureAreas) do
-      local startX, _, startZ = getWorldTranslation(workArea.start)
-      local widthX, _, widthZ = getWorldTranslation(workArea.width)
-      local heightX, _, heightZ = getWorldTranslation(workArea.height)
-
-      if hasProcessed then
-        operations.mark:updateParallelogramWorldCoords(startX, startZ, widthX, widthZ, heightX, heightZ, DensityCoordType.POINT_POINT_POINT)
-        operations.mark:execute()
-      end
-
-      operations.clear:updateParallelogramWorldCoords(startX, startZ, widthX, widthZ, heightX, heightZ, DensityCoordType.POINT_POINT_POINT)
-      operations.clear:execute()
-      operations.restore:updateParallelogramWorldCoords(startX, startZ, widthX, widthZ, heightX, heightZ, DensityCoordType.POINT_POINT_POINT)
-      operations.restore:execute()
-    end
-  end
-
-  if groundTextureAreas ~= nil then
-    table.clear(groundTextureAreas)
-  end
-
-  spec.capturedManureGroundType = nil
-end
-
 ---Called on end work area processing
 function ManureGroundDepositor:onEndWorkAreaProcessing(_, _)
-  self:restoreGroundTextures(self.spec_sprayer.workAreaParameters.isActive)
-
   if not self.isServer then
     return
   end
@@ -442,8 +180,6 @@ end
 
 ---Called before detaching
 function ManureGroundDepositor:onPreDetach(_, _)
-  self:restoreGroundTextures(false)
-
   if self.isServer then
     self:finishConsumptionTracking()
     self.spec_manureGroundDepositor.fieldRemainderLiters = 0
@@ -452,8 +188,6 @@ end
 
 ---Called when the spreader is turned off
 function ManureGroundDepositor:onTurnedOff()
-  self:restoreGroundTextures(false)
-
   if self.isServer then
     self:finishConsumptionTracking()
     self.spec_manureGroundDepositor.fieldRemainderLiters = 0
@@ -496,8 +230,6 @@ function ManureGroundDepositor:onDelete()
     return
   end
 
-  self:restoreGroundTextures(false)
-
   if self.isServer then
     if spec.applicationAreas ~= nil then
       table.clear(spec.applicationAreas)
@@ -523,9 +255,9 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
   local spec = self.spec_manureGroundDepositor
   local applicationAreas = spec.applicationAreas
   local minimumPlacementLiters = spec.minimumPlacementLiters
-  local groundHeightType = g_densityMapHeightManager ~= nil and g_densityMapHeightManager:getIsValid() and g_densityMapHeightManager:getDensityMapHeightTypeByFillTypeIndex(spec.groundFillType) or nil
+  local canTipToGround = g_densityMapHeightManager ~= nil and DensityMapHeightUtil.getCanTipToGround(spec.groundFillType)
 
-  if groundHeightType == nil or minimumPlacementLiters <= 0 or #applicationAreas == 0 or spec.fieldPixels <= 0 or spec.totalPixels <= 0 then
+  if not canTipToGround or minimumPlacementLiters <= 0 or #applicationAreas == 0 or spec.fieldPixels <= 0 or spec.totalPixels <= 0 then
     spec.fieldRemainderLiters = 0
     return
   end
@@ -546,14 +278,12 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
   end
 
   local sideDirectionX, _, sideDirectionZ = localDirectionToWorld(self.rootNode, 1, 0, 0)
-  local sideDirectionLength = MathUtil.vector2Length(sideDirectionX, sideDirectionZ)
 
-  if sideDirectionLength <= 0.001 then
+  if MathUtil.vector2LengthSq(sideDirectionX, sideDirectionZ) <= 0.000001 then
     return
   end
 
-  sideDirectionX = sideDirectionX / sideDirectionLength
-  sideDirectionZ = sideDirectionZ / sideDirectionLength
+  sideDirectionX, sideDirectionZ = MathUtil.vector2Normalize(sideDirectionX, sideDirectionZ)
 
   local minSideOffset = math.huge
   local maxSideOffset = -math.huge

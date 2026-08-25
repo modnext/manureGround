@@ -3,12 +3,5 @@
   <elements>
     <!-- Fill Types -->
     <e k="fillType_manure_dirty" v="Yayılmış Çiftlik Gübresi" />
-
-    <!-- General UI -->
-    <e k="manureGround_ui_header" v="Zemin Gübresi" />
-
-    <!-- Game Settings -->
-    <e k="manureGround_settingTitle_hideGroundTexture" v="Standart Gübre Kaplamasını Gizle" />
-    <e k="manureGround_settingDescription_hideGroundTexture" v="Gübre yayma sırasında oluşturulan düz arazi kaplamasının gizlenip gizlenmeyeceğini belirler. Tarlaya biriken gübre görünür kalır." />
   </elements>
 </l10n>

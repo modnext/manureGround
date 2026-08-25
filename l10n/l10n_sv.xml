@@ -3,12 +3,5 @@
   <elements>
     <!-- Fill Types -->
     <e k="fillType_manure_dirty" v="Spridd Gödsel" />
-
-    <!-- General UI -->
-    <e k="manureGround_ui_header" v="Gödsel på Mark" />
-
-    <!-- Game Settings -->
-    <e k="manureGround_settingTitle_hideGroundTexture" v="Dölj Standard Gödseltextur" />
-    <e k="manureGround_settingDescription_hideGroundTexture" v="Bestämmer om den platta terrängtexturen som skapas vid gödselspridning döljs. Deponerad gödsel på fältet förblir synlig." />
   </elements>
 </l10n>

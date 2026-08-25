@@ -3,12 +3,5 @@
   <elements>
     <!-- Fill Types -->
     <e k="fillType_manure_dirty" v="" />
-
-    <!-- General UI -->
-    <e k="manureGround_ui_header" v="" />
-
-    <!-- Game Settings -->
-    <e k="manureGround_settingTitle_hideGroundTexture" v="" />
-    <e k="manureGround_settingDescription_hideGroundTexture" v="" />
   </elements>
 </l10n>
