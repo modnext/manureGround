@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no" ?>
 <modDesc descVersion="111">
   <author>aaw3k</author>
-  <version>1.0.1.0</version>
+  <version>1.0.2.0</version>
 
   <title>
     <en>Manure Ground</en>
@@ -13,15 +13,17 @@
 
   <description>
     <en><![CDATA[
-Adds deposited manure to fields when using manure spreaders. Instead of flat ground textures, manure actually lies on the soil.
+Adds deposited manure to fields when using manure spreaders. In addition to the standard ground texture, manure actually lies on the soil.
 
 Features:
 - Manure is deposited directly on the field during spreading.
 - Higher application rates of manure result in more manure on the ground.
 - Deposited manure cannot be collected back from the field.
-- Option in Game Settings to hide the standard flat manure texture.
 
 The appearance and shape of deposited manure may vary slightly depending on the map's terrain configuration.
+
+Changelog Version 1.0.2.0:
+- Removed the option to hide the base-game manure ground texture to improve stability and compatibility with other mods
 
 Changelog Version 1.0.1.0:
 - Fixed overlapping manure spreader previews when quickly switching vehicles in the shop (1.0.0.1)
@@ -32,15 +34,17 @@ Changelog Version 1.0.1.0:
 For more information or to report a bug, please visit GitHub (modnext/manureGround).
 ]]></en>
     <de><![CDATA[
-Fügt den Feldern beim Einsatz von Miststreuern abgelegten Mist hinzu. Anstelle von flachen Bodentexturen liegt der Mist tatsächlich auf dem Boden.
+Fügt den Feldern beim Einsatz von Miststreuern abgelegten Mist hinzu. Zusätzlich zur standardmäßigen Bodentextur liegt der Mist tatsächlich auf dem Boden.
 
 Funktionen:
 - Mist wird beim Streuen direkt auf dem Feld abgelegt.
 - Höhere Ausbringmengen an Mist führen zu mehr Mist auf dem Boden.
 - Abgelegter Mist kann nicht wieder vom Feld aufgenommen werden.
-- Option in den Spieleinstellungen zum Ausblenden der flachen Standard-Misttextur.
 
 Das Aussehen und die Form des abgelegten Mists können je nach Terrain-Konfiguration der Karte leicht variieren.
+
+Änderungsprotokoll Version 1.0.2.0:
+- Die Option zum Ausblenden der Mist-Bodentextur des Basisspiels wurde entfernt, um die Stabilität und Kompatibilität mit anderen Mods zu verbessern
 
 Änderungsprotokoll Version 1.0.1.0:
 - Überlappende Vorschauen von Miststreuern beim schnellen Fahrzeugwechsel im Shop behoben (1.0.0.1)
@@ -51,15 +55,17 @@ Das Aussehen und die Form des abgelegten Mists können je nach Terrain-Konfigura
 Für weitere Informationen oder um einen Fehler zu melden, besuchen Sie bitte GitHub (modnext/manureGround).
 ]]></de>
     <fr><![CDATA[
-Ajoute du fumier déposé sur les champs lors de l'utilisation d'épandeurs à fumier. Au lieu de textures de sol plates, le fumier repose réellement sur le sol.
+Ajoute du fumier déposé sur les champs lors de l'utilisation d'épandeurs à fumier. En plus de la texture de sol standard, le fumier repose réellement sur le sol.
 
 Fonctionnalités :
 - Le fumier est déposé directement sur le champ pendant l'épandage.
 - Un dosage d'épandage de fumier plus élevé dépose plus de fumier sur le sol.
 - Le fumier déposé ne peut pas être ramassé sur le champ.
-- Option dans les paramètres du jeu pour masquer la texture de fumier plate par défaut.
 
 L'apparence et la forme du fumier déposé peuvent varier légèrement selon la configuration du terrain de la carte.
+
+Journal des modifications version 1.0.2.0:
+- Suppression de l'option permettant de masquer la texture de fumier au sol du jeu de base afin d'améliorer la stabilité et la compatibilité avec les autres mods
 
 Journal des modifications version 1.0.1.0:
 - Correction du chevauchement des aperçus d'épandeurs à fumier lors d'un changement rapide de véhicule dans le magasin (1.0.0.1)
@@ -70,15 +76,17 @@ Journal des modifications version 1.0.1.0:
 Pour plus d'informations ou pour signaler un bug, veuillez visiter GitHub (modnext/manureGround).
 ]]></fr>
     <pl><![CDATA[
-Dodaje usypany obornik na polach podczas pracy rozrzutnikami. Zamiast płaskiego malowania na ziemi, obornik faktycznie leży na glebie.
+Dodaje usypany obornik na polach podczas pracy rozrzutnikami. Oprócz standardowej tekstury podłoża obornik faktycznie leży na glebie.
 
 Funkcje:
 - Obornik jest usypywany na polu podczas rozrzucania.
 - Im większa dawka obornika, tym więcej ląduje go na ziemi.
 - Brak możliwości ponownego zbierania rozrzuconego obornika z pola.
-- Opcja w ustawieniach gry pozwalająca ukryć płaską teksturę obornika.
 
 Wygląd i kształt obornika mogą się nieznacznie różnić zależnie od konfiguracji terenu danej mapy.
+
+Lista zmian w wersji 1.0.2.0:
+- Usunięto opcję ukrywania tekstury obornika z gry podstawowej, aby poprawić stabilność i kompatybilność z innymi modami
 
 Lista zmian w wersji 1.0.1.0:
 - Naprawiono nakładanie się podglądów rozrzutników obornika podczas szybkiego przełączania pojazdów w sklepie (1.0.0.1)
@@ -89,15 +97,17 @@ Lista zmian w wersji 1.0.1.0:
 Aby uzyskać więcej informacji lub zgłosić błąd, odwiedź GitHub (modnext/manureGround).
 ]]></pl>
     <ru><![CDATA[
-Добавляет уложенный навоз на поля при использовании разбрасывателей. Вместо плоских текстур на земле навоз действительно лежит на почве.
+Добавляет уложенный навоз на поля при использовании разбрасывателей. В дополнение к стандартной текстуре земли навоз действительно лежит на почве.
 
 Особенности:
 - Навоз укладывается на поле во время разбрасывания.
 - Чем выше норма внесения навоза, тем больше его оказывается на земле.
 - Уложенный навоз нельзя снова собрать с поля.
-- Опция в настройках игры, позволяющая скрыть стандартную плоскую текстуру навоза.
 
 Внешний вид и форма разложенного навоза могут немного различаться в зависимости от конфигурации рельефа карты.
+
+Журнал изменений версии 1.0.2.0:
+- Удалена возможность скрывать текстуру навоза из базовой игры для повышения стабильности и совместимости с другими модами
 
 Журнал изменений версии 1.0.1.0:
 - Исправлено наложение предварительных изображений разбрасывателей навоза при быстром переключении техники в магазине (1.0.0.1)
@@ -119,10 +129,7 @@ Aby uzyskać więcej informacji lub zgłosić błąd, odwiedź GitHub (modnext/m
 
   <extraSourceFiles>
     <sourceFile filename="scripts/AdditionalSpecialization.lua" />
-    <sourceFile filename="scripts/events/ManureGroundSettingsEvent.lua" />
-    <sourceFile filename="scripts/ManureGroundSystem.lua" />
     <sourceFile filename="scripts/extensions/DensityMapHeightManagerExtension.lua" />
-    <sourceFile filename="scripts/extensions/FSDensityMapUtilExtension.lua" />
   </extraSourceFiles>
 
   <specializations>

@@ -3,12 +3,5 @@
   <elements>
     <!-- Fill Types -->
     <e k="fillType_manure_dirty" v="Levitetty lanta" />
-
-    <!-- General UI -->
-    <e k="manureGround_ui_header" v="Lanta maassa" />
-
-    <!-- Game Settings -->
-    <e k="manureGround_settingTitle_hideGroundTexture" v="Piilota standardi lantatekstuuri" />
-    <e k="manureGround_settingDescription_hideGroundTexture" v="Määrittää, piilotetaanko lannan levityksen aikana luotu tasainen maastotekstuuri. Pellolle levitetty lanta pysyy näkyvissä." />
   </elements>
 </l10n>

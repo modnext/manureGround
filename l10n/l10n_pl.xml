@@ -3,12 +3,5 @@
   <elements>
     <!-- Fill Types -->
     <e k="fillType_manure_dirty" v="Obornik Rozrzucony" />
-
-    <!-- General UI -->
-    <e k="manureGround_ui_header" v="Obornik Na Ziemi" />
-
-    <!-- Game Settings -->
-    <e k="manureGround_settingTitle_hideGroundTexture" v="Ukryj Standardową Teksturę Obornika" />
-    <e k="manureGround_settingDescription_hideGroundTexture" v="Określa, czy płaska tekstura terenu powstająca podczas rozrzucania obornika ma być ukryta. Usypany obornik na polu pozostaje widoczny." />
   </elements>
 </l10n>

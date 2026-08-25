@@ -3,12 +3,5 @@
   <elements>
     <!-- Fill Types -->
     <e k="fillType_manure_dirty" v="Estiércol Esparcido" />
-
-    <!-- General UI -->
-    <e k="manureGround_ui_header" v="Estiércol en el Suelo" />
-
-    <!-- Game Settings -->
-    <e k="manureGround_settingTitle_hideGroundTexture" v="Ocultar Textura Estándar de Estiércol" />
-    <e k="manureGround_settingDescription_hideGroundTexture" v="Determina si se oculta la textura plana del terreno creada durante el esparcido de estiércol. El estiércol depositado en el campo permanece visible." />
   </elements>
 </l10n>

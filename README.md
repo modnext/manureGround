@@ -4,7 +4,7 @@
   <br />
   <b>Manure Ground</b> adds deposited manure to fields when using manure spreaders &mdash;
   <br />
-  instead of flat ground textures, manure actually lies on the soil.
+  in addition to the standard ground texture, manure actually lies on the soil.
   <br />
   <br />
 </p>
@@ -22,7 +22,6 @@
 - Manure is deposited directly on the field during spreading.
 - Higher application rates of manure result in more manure on the ground.
 - Deposited manure cannot be collected back from the field.
-- Option in Game Settings to hide the standard flat manure texture.
 
 ## Installation
 

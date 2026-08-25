@@ -3,12 +3,5 @@
   <elements>
     <!-- Fill Types -->
     <e k="fillType_manure_dirty" v="Verstreuter Mist" />
-
-    <!-- General UI -->
-    <e k="manureGround_ui_header" v="Mist am Boden" />
-
-    <!-- Game Settings -->
-    <e k="manureGround_settingTitle_hideGroundTexture" v="Standard-Misttextur ausblenden" />
-    <e k="manureGround_settingDescription_hideGroundTexture" v="Bestimmt, ob die beim Miststreuen erzeugte flache Geländetextur ausgeblendet wird. Aufgebrachter Mist auf dem Feld bleibt sichtbar." />
   </elements>
 </l10n>

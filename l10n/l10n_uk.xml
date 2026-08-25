@@ -3,12 +3,5 @@
   <elements>
     <!-- Fill Types -->
     <e k="fillType_manure_dirty" v="Розкиданий гній" />
-
-    <!-- General UI -->
-    <e k="manureGround_ui_header" v="Гній на землі" />
-
-    <!-- Game Settings -->
-    <e k="manureGround_settingTitle_hideGroundTexture" v="Сховати стандартну текстуру гною" />
-    <e k="manureGround_settingDescription_hideGroundTexture" v="Визначає, чи приховується плоска текстура рельєфу, створена під час розкидання гною. Накопичений гній на полі залишається видимим." />
   </elements>
 </l10n>
