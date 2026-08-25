@@ -55,7 +55,6 @@ function ManureGroundDepositor:onPreLoad(_)
   spec.fieldRemainderLiters = 0
   spec.fieldPixels = 0
   spec.totalPixels = 0
-  spec.scatterSequenceIndex = 0
   spec.groundFillType = nil
   spec.minimumPlacementLiters = 0
 end
@@ -148,11 +147,7 @@ function ManureGroundDepositor:processSprayerArea(superFunc, workArea, dt)
     return changedArea, totalArea
   end
 
-  local sideX = widthX - startX
-  local sideZ = widthZ - startZ
-  local sideLength = MathUtil.vector2Length(sideX, sideZ)
-
-  if sideLength <= 0.001 then
+  if MathUtil.vector2LengthSq(widthX - startX, widthZ - startZ) <= 0.000001 then
     return changedArea, totalArea
   end
 
@@ -255,58 +250,33 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
   local spec = self.spec_manureGroundDepositor
   local applicationAreas = spec.applicationAreas
   local minimumPlacementLiters = spec.minimumPlacementLiters
-  local canTipToGround = g_densityMapHeightManager ~= nil and DensityMapHeightUtil.getCanTipToGround(spec.groundFillType)
+  local canTipToGround = spec.groundFillType ~= nil and g_densityMapHeightManager ~= nil and DensityMapHeightUtil.getCanTipToGround(spec.groundFillType)
 
   if not canTipToGround or minimumPlacementLiters <= 0 or #applicationAreas == 0 or spec.fieldPixels <= 0 or spec.totalPixels <= 0 then
     spec.fieldRemainderLiters = 0
     return
   end
 
-  local tireTrackSystem = g_currentMission.tireTrackSystem
+  local tireTrackSystem = g_currentMission ~= nil and g_currentMission.tireTrackSystem or nil
 
   if tireTrackSystem == nil then
+    spec.fieldRemainderLiters = 0
     return
   end
 
   local fieldFactor = math.clamp(spec.fieldPixels / spec.totalPixels, 0, 1)
   local availableLiters = spec.fieldRemainderLiters + consumedLiters * fieldFactor
-  local requestedPiles = math.floor(availableLiters / minimumPlacementLiters)
+  local pileCountMultiplier = 1.5
+  local requestedPiles = math.floor(availableLiters * pileCountMultiplier / minimumPlacementLiters)
+  local minimumDepositCount = 4
   spec.fieldRemainderLiters = availableLiters
 
-  if requestedPiles == 0 then
+  if requestedPiles < minimumDepositCount then
     return
   end
 
-  local sideDirectionX, _, sideDirectionZ = localDirectionToWorld(self.rootNode, 1, 0, 0)
-
-  if MathUtil.vector2LengthSq(sideDirectionX, sideDirectionZ) <= 0.000001 then
-    return
-  end
-
-  sideDirectionX, sideDirectionZ = MathUtil.vector2Normalize(sideDirectionX, sideDirectionZ)
-
-  local minSideOffset = math.huge
-  local maxSideOffset = -math.huge
-
-  for _, area in ipairs(applicationAreas) do
-    local fourthX = area.widthX + area.heightX - area.startX
-    local fourthZ = area.widthZ + area.heightZ - area.startZ
-    local startOffset = area.startX * sideDirectionX + area.startZ * sideDirectionZ
-    local widthOffset = area.widthX * sideDirectionX + area.widthZ * sideDirectionZ
-    local heightOffset = area.heightX * sideDirectionX + area.heightZ * sideDirectionZ
-    local fourthOffset = fourthX * sideDirectionX + fourthZ * sideDirectionZ
-
-    area.minSideOffset = math.min(startOffset, widthOffset, heightOffset, fourthOffset)
-    area.maxSideOffset = math.max(startOffset, widthOffset, heightOffset, fourthOffset)
-    minSideOffset = math.min(minSideOffset, area.minSideOffset)
-    maxSideOffset = math.max(maxSideOffset, area.maxSideOffset)
-  end
-
-  local workingWidth = maxSideOffset - minSideOffset
-
-  if workingWidth <= 0.001 then
-    return
-  end
+  local firstArea = applicationAreas[1]
+  local sideDirectionX, sideDirectionZ = MathUtil.vector2Normalize(firstArea.widthX - firstArea.startX, firstArea.widthZ - firstArea.startZ)
 
   local maxDepositCount = 20
   local pileHalfLength = 0.1
@@ -314,63 +284,97 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
   local depositPositions = table.create(maxDepositCount * 2)
   local depositCount = 0
   local targetDepositCount = math.min(requestedPiles, maxDepositCount)
+  local sideSpacing = 1 / (targetDepositCount - 1)
+  local heightIndices = table.create(targetDepositCount)
 
-  for _ = 1, maxDepositCount do
-    local sequenceIndex = spec.scatterSequenceIndex
-    local columnIndex = math.floor(sequenceIndex / 2)
+  for index = 1, targetDepositCount do
+    heightIndices[index] = index - 1
+  end
 
-    if sequenceIndex % 2 == 1 then
-      columnIndex = maxDepositCount - 1 - columnIndex
+  Utils.shuffle(heightIndices)
+
+  for sideIndex = 0, targetDepositCount - 1 do
+    local heightIndex = heightIndices[sideIndex + 1]
+    local baseSideFactor = sideIndex * sideSpacing
+
+    if baseSideFactor < 0.5 then
+      baseSideFactor = 2 * baseSideFactor * baseSideFactor
+    else
+      local inverseSideFactor = 1 - baseSideFactor
+      baseSideFactor = 1 - 2 * inverseSideFactor * inverseSideFactor
     end
 
-    spec.scatterSequenceIndex = (sequenceIndex + 1) % maxDepositCount
-
     for _ = 1, 12 do
-      local sideFactor = (columnIndex + math.random()) / maxDepositCount
-      local sideOffset = minSideOffset + sideFactor * workingWidth
+      local heightFactor = (heightIndex + math.random()) / targetDepositCount
+      local minSideOffset = math.huge
+      local maxSideOffset = -math.huge
       local centerX = nil
       local centerZ = nil
-      local selectedArea = nil
-      local selectedSideOffset = sideOffset
-      local nearestDistance = math.huge
 
       for _, area in ipairs(applicationAreas) do
-        local sideLength = area.maxSideOffset - area.minSideOffset
+        local heightX = (area.heightX - area.startX) * heightFactor
+        local heightZ = (area.heightZ - area.startZ) * heightFactor
+        area.sliceStartX = area.startX + heightX
+        area.sliceStartZ = area.startZ + heightZ
+        area.sliceEndX = area.widthX + heightX
+        area.sliceEndZ = area.widthZ + heightZ
+        area.sliceStartOffset = area.sliceStartX * sideDirectionX + area.sliceStartZ * sideDirectionZ
+        area.sliceEndOffset = area.sliceEndX * sideDirectionX + area.sliceEndZ * sideDirectionZ
+        area.minSideOffset = math.min(area.sliceStartOffset, area.sliceEndOffset)
+        area.maxSideOffset = math.max(area.sliceStartOffset, area.sliceEndOffset)
+        minSideOffset = math.min(minSideOffset, area.minSideOffset)
+        maxSideOffset = math.max(maxSideOffset, area.maxSideOffset)
+      end
 
-        if sideLength > 0.001 then
-          local clampedOffset = math.clamp(sideOffset, area.minSideOffset, area.maxSideOffset)
-          local distance = math.abs(sideOffset - clampedOffset)
+      local workingWidth = maxSideOffset - minSideOffset
 
-          if distance < nearestDistance then
-            selectedArea = area
-            selectedSideOffset = clampedOffset
-            nearestDistance = distance
+      if workingWidth > 0.001 then
+        local sideMargin = math.min(pileHalfLength / workingWidth, 0.5)
+        local sideFactor = baseSideFactor
+        local usableWidth = workingWidth * (1 - sideMargin * 2)
 
-            if distance <= 0.001 then
-              break
+        if usableWidth > 0.001 then
+          local minimumSideStep = math.min(pileRadius / usableWidth, sideSpacing)
+          sideFactor = math.clamp(sideFactor, sideIndex * minimumSideStep, 1 - (targetDepositCount - sideIndex - 1) * minimumSideStep)
+
+          if sideIndex > 0 and sideIndex < targetDepositCount - 1 then
+            local maxSideJitter = math.min(0.05 / usableWidth, minimumSideStep * 0.15)
+            sideFactor = math.clamp(sideFactor + (math.random() * 2 - 1) * maxSideJitter, 0, 1)
+          end
+        end
+
+        sideFactor = sideMargin + sideFactor * (1 - sideMargin * 2)
+        local sideOffset = minSideOffset + sideFactor * workingWidth
+        local selectedArea = nil
+        local selectedSideOffset = sideOffset
+        local nearestDistance = math.huge
+
+        for _, area in ipairs(applicationAreas) do
+          local sideLength = area.maxSideOffset - area.minSideOffset
+
+          if sideLength > 0.001 then
+            local clampedOffset = math.clamp(sideOffset, area.minSideOffset, area.maxSideOffset)
+            local distance = math.abs(sideOffset - clampedOffset)
+
+            if distance < nearestDistance then
+              selectedArea = area
+              selectedSideOffset = clampedOffset
+              nearestDistance = distance
+
+              if distance <= 0.001 then
+                break
+              end
             end
           end
         end
-      end
 
-      if selectedArea ~= nil then
-        local heightFactor = math.random()
-        local heightX = (selectedArea.heightX - selectedArea.startX) * heightFactor
-        local heightZ = (selectedArea.heightZ - selectedArea.startZ) * heightFactor
-        local sliceStartX = selectedArea.startX + heightX
-        local sliceStartZ = selectedArea.startZ + heightZ
-        local sliceEndX = selectedArea.widthX + heightX
-        local sliceEndZ = selectedArea.widthZ + heightZ
-        local sliceStartOffset = sliceStartX * sideDirectionX + sliceStartZ * sideDirectionZ
-        local sliceEndOffset = sliceEndX * sideDirectionX + sliceEndZ * sideDirectionZ
-        local sliceWidth = sliceEndOffset - sliceStartOffset
+        if selectedArea ~= nil then
+          local sliceWidth = selectedArea.sliceEndOffset - selectedArea.sliceStartOffset
 
-        if math.abs(sliceWidth) > 0.001 then
-          local sliceFactor = (selectedSideOffset - sliceStartOffset) / sliceWidth
-
-          if sliceFactor >= 0 and sliceFactor <= 1 then
-            centerX = sliceStartX + (sliceEndX - sliceStartX) * sliceFactor
-            centerZ = sliceStartZ + (sliceEndZ - sliceStartZ) * sliceFactor
+          if math.abs(sliceWidth) > 0.001 then
+            local sliceFactor = math.clamp((selectedSideOffset - selectedArea.sliceStartOffset) / sliceWidth, 0, 1)
+            centerX = selectedArea.sliceStartX + (selectedArea.sliceEndX - selectedArea.sliceStartX) * sliceFactor
+            centerZ = selectedArea.sliceStartZ + (selectedArea.sliceEndZ - selectedArea.sliceStartZ) * sliceFactor
           end
         end
       end
@@ -389,10 +393,6 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
         end
       end
     end
-
-    if depositCount == targetDepositCount then
-      break
-    end
   end
 
   if depositCount == 0 then
@@ -401,8 +401,6 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
 
   local pileLiters = requestedPiles * minimumPlacementLiters / depositCount
   local tireTrackSystemId = tireTrackSystem.tireTrackSystemId
-
-  tireTrackSystem.tireTrackSystemId = 0
 
   for index = 1, depositCount do
     local centerX = depositPositions[index * 2 - 1]
@@ -414,12 +412,17 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
     local startY = getTerrainHeightAtWorldPos(g_terrainNode, startX, 0, startZ)
     local endY = getTerrainHeightAtWorldPos(g_terrainNode, endX, 0, endZ)
 
-    local placedLiters = DensityMapHeightUtil.tipToGroundAroundLine(self, pileLiters, spec.groundFillType, startX, startY, startZ, endX, endY, endZ, 0, pileRadius, nil, false, nil, false, true)
-    placedLiters = math.clamp(placedLiters or 0, 0, pileLiters)
-    spec.fieldRemainderLiters = math.max(spec.fieldRemainderLiters - placedLiters, 0)
-  end
+    tireTrackSystem.tireTrackSystemId = 0
+    local success, placedLiters = pcall(DensityMapHeightUtil.tipToGroundAroundLine, self, pileLiters, spec.groundFillType, startX, startY, startZ, endX, endY, endZ, 0, pileRadius, nil, false, nil, false, true)
+    tireTrackSystem.tireTrackSystemId = tireTrackSystemId
 
-  tireTrackSystem.tireTrackSystemId = tireTrackSystemId
+    if not success then
+      error(placedLiters, 0)
+    end
+
+    placedLiters = math.clamp(placedLiters or 0, 0, pileLiters)
+    spec.fieldRemainderLiters = math.max(spec.fieldRemainderLiters - placedLiters / pileCountMultiplier, 0)
+  end
 end
 
 ---Checks if the full deposit line is on a field

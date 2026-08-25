@@ -24,6 +24,7 @@ The appearance and shape of deposited manure may vary slightly depending on the 
 
 Changelog Version 1.0.2.0:
 - Removed the option to hide the base-game manure ground texture to improve stability and compatibility with other mods
+- Improved manure distribution with 50% more piles for a denser and more natural appearance
 
 Changelog Version 1.0.1.0:
 - Fixed overlapping manure spreader previews when quickly switching vehicles in the shop (1.0.0.1)
@@ -45,6 +46,7 @@ Das Aussehen und die Form des abgelegten Mists können je nach Terrain-Konfigura
 
 Änderungsprotokoll Version 1.0.2.0:
 - Die Option zum Ausblenden der Mist-Bodentextur des Basisspiels wurde entfernt, um die Stabilität und Kompatibilität mit anderen Mods zu verbessern
+- Die Mistverteilung wurde mit 50 % mehr Haufen für ein dichteres und natürlicheres Erscheinungsbild verbessert
 
 Änderungsprotokoll Version 1.0.1.0:
 - Überlappende Vorschauen von Miststreuern beim schnellen Fahrzeugwechsel im Shop behoben (1.0.0.1)
@@ -66,6 +68,7 @@ L'apparence et la forme du fumier déposé peuvent varier légèrement selon la 
 
 Journal des modifications version 1.0.2.0:
 - Suppression de l'option permettant de masquer la texture de fumier au sol du jeu de base afin d'améliorer la stabilité et la compatibilité avec les autres mods
+- Amélioration de la répartition du fumier avec 50 % de tas supplémentaires pour un rendu plus dense et naturel
 
 Journal des modifications version 1.0.1.0:
 - Correction du chevauchement des aperçus d'épandeurs à fumier lors d'un changement rapide de véhicule dans le magasin (1.0.0.1)
@@ -87,6 +90,7 @@ Wygląd i kształt obornika mogą się nieznacznie różnić zależnie od konfig
 
 Lista zmian w wersji 1.0.2.0:
 - Usunięto opcję ukrywania tekstury obornika z gry podstawowej, aby poprawić stabilność i kompatybilność z innymi modami
+- Poprawiono rozmieszczenie obornika, zwiększając liczbę kupek o 50% dla gęstszego i bardziej naturalnego efektu
 
 Lista zmian w wersji 1.0.1.0:
 - Naprawiono nakładanie się podglądów rozrzutników obornika podczas szybkiego przełączania pojazdów w sklepie (1.0.0.1)
@@ -108,6 +112,7 @@ Aby uzyskać więcej informacji lub zgłosić błąd, odwiedź GitHub (modnext/m
 
 Журнал изменений версии 1.0.2.0:
 - Удалена возможность скрывать текстуру навоза из базовой игры для повышения стабильности и совместимости с другими модами
+- Улучшено распределение навоза: количество куч увеличено на 50 % для более плотного и естественного вида
 
 Журнал изменений версии 1.0.1.0:
 - Исправлено наложение предварительных изображений разбрасывателей навоза при быстром переключении техники в магазине (1.0.0.1)
