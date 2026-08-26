@@ -20,7 +20,9 @@ Features:
 - Higher application rates of manure result in more manure on the ground.
 - Deposited manure cannot be collected back from the field.
 
-The appearance and shape of deposited manure may vary slightly depending on the map's terrain configuration.
+Compatibility:
+- The appearance and shape of deposited manure may vary slightly depending on the map's terrain configuration.
+- The game supports up to 255 fill types and 63 density-map height types by default. This mod adds one of each; other mods/DLC may reach these limits and prevent it from working.
 
 Changelog Version 1.0.2.0:
 - Removed the option to hide the base-game manure ground texture to improve stability and compatibility with other mods
@@ -42,7 +44,9 @@ Funktionen:
 - Höhere Ausbringmengen an Mist führen zu mehr Mist auf dem Boden.
 - Abgelegter Mist kann nicht wieder vom Feld aufgenommen werden.
 
-Das Aussehen und die Form des abgelegten Mists können je nach Terrain-Konfiguration der Karte leicht variieren.
+Kompatibilität:
+- Das Aussehen und die Form des abgelegten Mists können je nach Terrain-Konfiguration der Karte leicht variieren.
+- Das Spiel unterstützt standardmäßig bis zu 255 Fülltypen und 63 Höhenkartentypen. Dieser Mod fügt jeweils einen Typ hinzu; andere Mods/DLCs können diese Grenzen erreichen und seine Funktion verhindern.
 
 Änderungsprotokoll Version 1.0.2.0:
 - Die Option zum Ausblenden der Mist-Bodentextur des Basisspiels wurde entfernt, um die Stabilität und Kompatibilität mit anderen Mods zu verbessern
@@ -64,7 +68,9 @@ Fonctionnalités :
 - Un dosage d'épandage de fumier plus élevé dépose plus de fumier sur le sol.
 - Le fumier déposé ne peut pas être ramassé sur le champ.
 
-L'apparence et la forme du fumier déposé peuvent varier légèrement selon la configuration du terrain de la carte.
+Compatibilité :
+- L'apparence et la forme du fumier déposé peuvent varier légèrement selon la configuration du terrain de la carte.
+- Le jeu prend en charge jusqu'à 255 types de remplissage et 63 types de hauteur par défaut. Ce mod en ajoute un de chaque ; d'autres mods/DLC peuvent atteindre ces limites et empêcher son fonctionnement.
 
 Journal des modifications version 1.0.2.0:
 - Suppression de l'option permettant de masquer la texture de fumier au sol du jeu de base afin d'améliorer la stabilité et la compatibilité avec les autres mods
@@ -86,7 +92,9 @@ Funkcje:
 - Im większa dawka obornika, tym więcej ląduje go na ziemi.
 - Brak możliwości ponownego zbierania rozrzuconego obornika z pola.
 
-Wygląd i kształt obornika mogą się nieznacznie różnić zależnie od konfiguracji terenu danej mapy.
+Kompatybilność:
+- Wygląd i kształt obornika mogą się nieznacznie różnić zależnie od konfiguracji terenu danej mapy.
+- Gra obsługuje do 255 filltypów i domyślnie 63 typy wysokości mapy. Ten mod dodaje po jednym z każdego typu, a inne mody/DLC mogą wyczerpać te limity i uniemożliwić jego działanie.
 
 Lista zmian w wersji 1.0.2.0:
 - Usunięto opcję ukrywania tekstury obornika z gry podstawowej, aby poprawić stabilność i kompatybilność z innymi modami
@@ -108,7 +116,9 @@ Aby uzyskać więcej informacji lub zgłosić błąd, odwiedź GitHub (modnext/m
 - Чем выше норма внесения навоза, тем больше его оказывается на земле.
 - Уложенный навоз нельзя снова собрать с поля.
 
-Внешний вид и форма разложенного навоза могут немного различаться в зависимости от конфигурации рельефа карты.
+Совместимость:
+- Внешний вид и форма разложенного навоза могут немного различаться в зависимости от конфигурации рельефа карты.
+- Игра поддерживает до 255 типов заполнения и по умолчанию 63 типа высоты карты. Этот мод добавляет по одному типу каждого вида; другие моды/DLC могут достичь этих ограничений и помешать его работе.
 
 Журнал изменений версии 1.0.2.0:
 - Удалена возможность скрывать текстуру навоза из базовой игры для повышения стабильности и совместимости с другими модами
