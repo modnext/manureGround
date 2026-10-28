@@ -36,10 +36,10 @@ function ManureGroundDepositor.registerEventListeners(vehicleType)
   SpecializationUtil.registerEventListener(vehicleType, "onPreLoad", ManureGroundDepositor)
   SpecializationUtil.registerEventListener(vehicleType, "onLoad", ManureGroundDepositor)
   SpecializationUtil.registerEventListener(vehicleType, "onDelete", ManureGroundDepositor)
-  SpecializationUtil.registerEventListener(vehicleType, "onStartWorkAreaProcessing", ManureGroundDepositor)
-  SpecializationUtil.registerEventListener(vehicleType, "onEndWorkAreaProcessing", ManureGroundDepositor)
   SpecializationUtil.registerEventListener(vehicleType, "onTurnedOff", ManureGroundDepositor)
   SpecializationUtil.registerEventListener(vehicleType, "onPreDetach", ManureGroundDepositor)
+  SpecializationUtil.registerEventListener(vehicleType, "onStartWorkAreaProcessing", ManureGroundDepositor)
+  SpecializationUtil.registerEventListener(vehicleType, "onEndWorkAreaProcessing", ManureGroundDepositor)
 end
 
 ---Initializes state before asynchronous vehicle loading starts
@@ -52,6 +52,8 @@ function ManureGroundDepositor:onPreLoad(_)
   spec.sourceFillLevel = 0
   spec.externalUsage = 0
   spec.applicationAreas = {}
+  spec.depositPositions = {}
+  spec.heightIndices = {}
   spec.fieldRemainderLiters = 0
   spec.fieldPixels = 0
   spec.totalPixels = 0
@@ -65,127 +67,30 @@ function ManureGroundDepositor:onLoad(_)
   spec.groundFillType = g_fillTypeManager:getFillTypeIndexByName("MANURE_DIRTY")
 
   if spec.groundFillType ~= nil and g_densityMapHeightManager ~= nil and g_densityMapHeightManager:getIsValid() then
-    spec.minimumPlacementLiters = math.max(6, g_densityMapHeightManager:getMinValidLiterValue(spec.groundFillType) or 0)
+    spec.minimumPlacementLiters = math.max(6, g_densityMapHeightManager:getMinValidLiterValue(spec.groundFillType))
   end
 end
 
----Called on start work area processing
-function ManureGroundDepositor:onStartWorkAreaProcessing()
-  if not self.isServer then
+---Called when the spreader is deleted
+function ManureGroundDepositor:onDelete()
+  local spec = self.spec_manureGroundDepositor
+
+  if spec == nil then
     return
   end
 
-  local spec = self.spec_manureGroundDepositor
-  local sprayerSpec = self.spec_sprayer
-  local parameters = sprayerSpec.workAreaParameters
+  if self.isServer then
+    table.clear(spec.applicationAreas)
+    table.clear(spec.depositPositions)
+    table.clear(spec.heightIndices)
 
-  table.clear(spec.applicationAreas)
-  spec.sourceVehicle = nil
-  spec.sourceFillUnitIndex = nil
-  spec.sourceFillLevel = 0
-  spec.externalUsage = 0
-  spec.fieldPixels = 0
-  spec.totalPixels = 0
-
-  if not sprayerSpec.isManureSpreader or parameters.sprayFillType ~= FillType.MANURE then
     spec.fieldRemainderLiters = 0
-    return
-  end
-
-  local sourceVehicle = parameters.sprayVehicle
-  local sourceFillUnitIndex = parameters.sprayVehicleFillUnitIndex
-
-  if sourceVehicle == nil or sourceFillUnitIndex == nil then
-    if self:getIsAIActive() and self:getIsSprayerExternallyFilled() and parameters.usage > 0 then
-      spec.externalUsage = parameters.usage
-    else
-      spec.fieldRemainderLiters = 0
-      return
-    end
-  else
-    if sourceVehicle:getFillUnitFillType(sourceFillUnitIndex) ~= FillType.MANURE then
-      spec.fieldRemainderLiters = 0
-      return
-    end
-
-    spec.sourceVehicle = sourceVehicle
-    spec.sourceFillUnitIndex = sourceFillUnitIndex
-    spec.sourceFillLevel = sourceVehicle:getFillUnitFillLevel(sourceFillUnitIndex)
-  end
-
-  if spec.minimumPlacementLiters <= 0 and spec.groundFillType ~= nil and g_densityMapHeightManager ~= nil and g_densityMapHeightManager:getIsValid() then
-    spec.minimumPlacementLiters = math.max(6, g_densityMapHeightManager:getMinValidLiterValue(spec.groundFillType) or 0)
-  end
-end
-
----Records the ground areas processed by the Sprayer specialization
--- @param function superFunc super function
--- @param table workArea work area
--- @param float dt time since last call in ms
--- @return float changedArea changed area
--- @return float totalArea total area
-function ManureGroundDepositor:processSprayerArea(superFunc, workArea, dt)
-  local changedArea, totalArea = superFunc(self, workArea, dt)
-  local parameters = self.spec_sprayer.workAreaParameters
-
-  if not self.isServer then
-    return changedArea, totalArea
-  end
-
-  local spec = self.spec_manureGroundDepositor
-
-  if (spec.sourceVehicle == nil and spec.externalUsage <= 0) or not parameters.isActive then
-    return changedArea, totalArea
-  end
-
-  local startX, _, startZ = getWorldTranslation(workArea.start)
-  local widthX, _, widthZ = getWorldTranslation(workArea.width)
-  local heightX, _, heightZ = getWorldTranslation(workArea.height)
-  local _, fieldPixels, totalPixels = FSDensityMapUtil.getFieldDensity(startX, startZ, widthX, widthZ, heightX, heightZ)
-
-  if totalPixels == nil or totalPixels <= 0 then
-    return changedArea, totalArea
-  end
-
-  if MathUtil.vector2LengthSq(widthX - startX, widthZ - startZ) <= 0.000001 then
-    return changedArea, totalArea
-  end
-
-  spec.applicationAreas[#spec.applicationAreas + 1] = {
-    startX = startX,
-    startZ = startZ,
-    widthX = widthX,
-    widthZ = widthZ,
-    heightX = heightX,
-    heightZ = heightZ,
-  }
-  spec.fieldPixels = spec.fieldPixels + math.max(fieldPixels or 0, 0)
-  spec.totalPixels = spec.totalPixels + totalPixels
-  return changedArea, totalArea
-end
-
----Called on end work area processing
-function ManureGroundDepositor:onEndWorkAreaProcessing(_, _)
-  if not self.isServer then
-    return
-  end
-
-  self:finishConsumptionTracking()
-end
-
----Called before detaching
-function ManureGroundDepositor:onPreDetach(_, _)
-  if self.isServer then
-    self:finishConsumptionTracking()
-    self.spec_manureGroundDepositor.fieldRemainderLiters = 0
-  end
-end
-
----Called when the spreader is turned off
-function ManureGroundDepositor:onTurnedOff()
-  if self.isServer then
-    self:finishConsumptionTracking()
-    self.spec_manureGroundDepositor.fieldRemainderLiters = 0
+    spec.fieldPixels = 0
+    spec.totalPixels = 0
+    spec.sourceVehicle = nil
+    spec.sourceFillUnitIndex = nil
+    spec.sourceFillLevel = 0
+    spec.externalUsage = 0
   end
 end
 
@@ -217,29 +122,6 @@ function ManureGroundDepositor:finishConsumptionTracking()
   table.clear(spec.applicationAreas)
 end
 
----Called when the spreader is deleted
-function ManureGroundDepositor:onDelete()
-  local spec = self.spec_manureGroundDepositor
-
-  if spec == nil then
-    return
-  end
-
-  if self.isServer then
-    if spec.applicationAreas ~= nil then
-      table.clear(spec.applicationAreas)
-    end
-
-    spec.fieldRemainderLiters = 0
-    spec.fieldPixels = 0
-    spec.totalPixels = 0
-    spec.sourceVehicle = nil
-    spec.sourceFillUnitIndex = nil
-    spec.sourceFillLevel = 0
-    spec.externalUsage = 0
-  end
-end
-
 ---Deposits the field-covered share of consumed manure across the working width
 -- @param float consumedLiters consumed manure in liters
 function ManureGroundDepositor:depositConsumedManure(consumedLiters)
@@ -251,15 +133,9 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
   local applicationAreas = spec.applicationAreas
   local minimumPlacementLiters = spec.minimumPlacementLiters
   local canTipToGround = spec.groundFillType ~= nil and g_densityMapHeightManager ~= nil and DensityMapHeightUtil.getCanTipToGround(spec.groundFillType)
-
-  if not canTipToGround or minimumPlacementLiters <= 0 or #applicationAreas == 0 or spec.fieldPixels <= 0 or spec.totalPixels <= 0 then
-    spec.fieldRemainderLiters = 0
-    return
-  end
-
   local tireTrackSystem = g_currentMission ~= nil and g_currentMission.tireTrackSystem or nil
 
-  if tireTrackSystem == nil then
+  if not canTipToGround or tireTrackSystem == nil or minimumPlacementLiters <= 0 or #applicationAreas == 0 or spec.fieldPixels <= 0 or spec.totalPixels <= 0 then
     spec.fieldRemainderLiters = 0
     return
   end
@@ -281,11 +157,19 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
   local maxDepositCount = 20
   local pileHalfLength = 0.1
   local pileRadius = 0.35
-  local depositPositions = table.create(maxDepositCount * 2)
+  local pileOffsetX, pileOffsetZ = sideDirectionX * pileHalfLength, sideDirectionZ * pileHalfLength
+  local depositPositions = spec.depositPositions
   local depositCount = 0
   local targetDepositCount = math.min(requestedPiles, maxDepositCount)
   local sideSpacing = 1 / (targetDepositCount - 1)
-  local heightIndices = table.create(targetDepositCount)
+  local heightIndices = spec.heightIndices
+  table.clear(heightIndices)
+
+  for _, area in ipairs(applicationAreas) do
+    area.startOffset = area.startX * sideDirectionX + area.startZ * sideDirectionZ
+    area.endOffset = area.widthX * sideDirectionX + area.widthZ * sideDirectionZ
+    area.heightOffset = (area.heightX - area.startX) * sideDirectionX + (area.heightZ - area.startZ) * sideDirectionZ
+  end
 
   for index = 1, targetDepositCount do
     heightIndices[index] = index - 1
@@ -312,14 +196,9 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
       local centerZ = nil
 
       for _, area in ipairs(applicationAreas) do
-        local heightX = (area.heightX - area.startX) * heightFactor
-        local heightZ = (area.heightZ - area.startZ) * heightFactor
-        area.sliceStartX = area.startX + heightX
-        area.sliceStartZ = area.startZ + heightZ
-        area.sliceEndX = area.widthX + heightX
-        area.sliceEndZ = area.widthZ + heightZ
-        area.sliceStartOffset = area.sliceStartX * sideDirectionX + area.sliceStartZ * sideDirectionZ
-        area.sliceEndOffset = area.sliceEndX * sideDirectionX + area.sliceEndZ * sideDirectionZ
+        local heightOffset = area.heightOffset * heightFactor
+        area.sliceStartOffset = area.startOffset + heightOffset
+        area.sliceEndOffset = area.endOffset + heightOffset
         area.minSideOffset = math.min(area.sliceStartOffset, area.sliceEndOffset)
         area.maxSideOffset = math.max(area.sliceStartOffset, area.sliceEndOffset)
         minSideOffset = math.min(minSideOffset, area.minSideOffset)
@@ -329,9 +208,9 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
       local workingWidth = maxSideOffset - minSideOffset
 
       if workingWidth > 0.001 then
-        local sideMargin = math.min(pileHalfLength / workingWidth, 0.5)
+        local sideMargin = math.min(pileHalfLength, workingWidth * 0.5)
         local sideFactor = baseSideFactor
-        local usableWidth = workingWidth * (1 - sideMargin * 2)
+        local usableWidth = workingWidth - sideMargin * 2
 
         if usableWidth > 0.001 then
           local minimumSideStep = math.min(pileRadius / usableWidth, sideSpacing)
@@ -343,10 +222,7 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
           end
         end
 
-        sideFactor = sideMargin + sideFactor * (1 - sideMargin * 2)
-        local sideOffset = minSideOffset + sideFactor * workingWidth
-        local selectedArea = nil
-        local selectedSideOffset = sideOffset
+        local sideOffset = MathUtil.lerp(minSideOffset + sideMargin, maxSideOffset - sideMargin, sideFactor)
         local nearestDistance = math.huge
 
         for _, area in ipairs(applicationAreas) do
@@ -357,8 +233,10 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
             local distance = math.abs(sideOffset - clampedOffset)
 
             if distance < nearestDistance then
-              selectedArea = area
-              selectedSideOffset = clampedOffset
+              local sliceFactor = MathUtil.inverseLerp(area.sliceStartOffset, area.sliceEndOffset, clampedOffset)
+              local heightX = (area.heightX - area.startX) * heightFactor
+              local heightZ = (area.heightZ - area.startZ) * heightFactor
+              centerX, centerZ = MathUtil.vector2Lerp(area.startX + heightX, area.startZ + heightZ, area.widthX + heightX, area.widthZ + heightZ, sliceFactor)
               nearestDistance = distance
 
               if distance <= 0.001 then
@@ -367,23 +245,13 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
             end
           end
         end
-
-        if selectedArea ~= nil then
-          local sliceWidth = selectedArea.sliceEndOffset - selectedArea.sliceStartOffset
-
-          if math.abs(sliceWidth) > 0.001 then
-            local sliceFactor = math.clamp((selectedSideOffset - selectedArea.sliceStartOffset) / sliceWidth, 0, 1)
-            centerX = selectedArea.sliceStartX + (selectedArea.sliceEndX - selectedArea.sliceStartX) * sliceFactor
-            centerZ = selectedArea.sliceStartZ + (selectedArea.sliceEndZ - selectedArea.sliceStartZ) * sliceFactor
-          end
-        end
       end
 
       if centerX ~= nil then
-        local startX = centerX - sideDirectionX * pileHalfLength
-        local startZ = centerZ - sideDirectionZ * pileHalfLength
-        local endX = centerX + sideDirectionX * pileHalfLength
-        local endZ = centerZ + sideDirectionZ * pileHalfLength
+        local startX = centerX - pileOffsetX
+        local startZ = centerZ - pileOffsetZ
+        local endX = centerX + pileOffsetX
+        local endZ = centerZ + pileOffsetZ
 
         if self:getIsLineOnField(startX, startZ, endX, endZ) then
           depositCount = depositCount + 1
@@ -405,10 +273,10 @@ function ManureGroundDepositor:depositConsumedManure(consumedLiters)
   for index = 1, depositCount do
     local centerX = depositPositions[index * 2 - 1]
     local centerZ = depositPositions[index * 2]
-    local startX = centerX - sideDirectionX * pileHalfLength
-    local startZ = centerZ - sideDirectionZ * pileHalfLength
-    local endX = centerX + sideDirectionX * pileHalfLength
-    local endZ = centerZ + sideDirectionZ * pileHalfLength
+    local startX = centerX - pileOffsetX
+    local startZ = centerZ - pileOffsetZ
+    local endX = centerX + pileOffsetX
+    local endZ = centerZ + pileOffsetZ
     local startY = getTerrainHeightAtWorldPos(g_terrainNode, startX, 0, startZ)
     local endY = getTerrainHeightAtWorldPos(g_terrainNode, endX, 0, endZ)
 
@@ -433,9 +301,7 @@ end
 -- @return boolean isOnField true if the full line is on a field
 function ManureGroundDepositor:getIsLineOnField(startX, startZ, endX, endZ)
   for step = 0, 2 do
-    local factor = step / 2
-    local x = startX + factor * (endX - startX)
-    local z = startZ + factor * (endZ - startZ)
+    local x, z = MathUtil.vector2Lerp(startX, startZ, endX, endZ, step / 2)
 
     if not FSDensityMapUtil.getFieldDataAtWorldPosition(x, 0, z) then
       return false
@@ -443,4 +309,123 @@ function ManureGroundDepositor:getIsLineOnField(startX, startZ, endX, endZ)
   end
 
   return true
+end
+
+---Records the ground areas processed by the Sprayer specialization
+-- @param function superFunc super function
+-- @param table workArea work area
+-- @param float dt time since last call in ms
+-- @return float changedArea changed area
+-- @return float totalArea total area
+function ManureGroundDepositor:processSprayerArea(superFunc, workArea, dt)
+  local changedArea, totalArea = superFunc(self, workArea, dt)
+
+  if not self.isServer then
+    return changedArea, totalArea
+  end
+
+  local spec = self.spec_manureGroundDepositor
+  local parameters = self.spec_sprayer.workAreaParameters
+
+  if (spec.sourceVehicle == nil and spec.externalUsage <= 0) or not parameters.isActive then
+    return changedArea, totalArea
+  end
+
+  local startX, _, startZ = getWorldTranslation(workArea.start)
+  local widthX, _, widthZ = getWorldTranslation(workArea.width)
+  local heightX, _, heightZ = getWorldTranslation(workArea.height)
+  local _, fieldPixels, totalPixels = FSDensityMapUtil.getFieldDensity(startX, startZ, widthX, widthZ, heightX, heightZ)
+
+  if totalPixels == nil or totalPixels <= 0 then
+    return changedArea, totalArea
+  end
+
+  if MathUtil.vector2LengthSq(widthX - startX, widthZ - startZ) <= 0.000001 then
+    return changedArea, totalArea
+  end
+
+  spec.applicationAreas[#spec.applicationAreas + 1] = {
+    startX = startX,
+    startZ = startZ,
+    widthX = widthX,
+    widthZ = widthZ,
+    heightX = heightX,
+    heightZ = heightZ,
+  }
+  spec.fieldPixels = spec.fieldPixels + math.max(fieldPixels or 0, 0)
+  spec.totalPixels = spec.totalPixels + totalPixels
+  return changedArea, totalArea
+end
+
+---Called when the spreader is turned off
+function ManureGroundDepositor:onTurnedOff()
+  if self.isServer then
+    self:finishConsumptionTracking()
+    self.spec_manureGroundDepositor.fieldRemainderLiters = 0
+  end
+end
+
+---Called before detaching
+function ManureGroundDepositor:onPreDetach(_, _)
+  if self.isServer then
+    self:finishConsumptionTracking()
+    self.spec_manureGroundDepositor.fieldRemainderLiters = 0
+  end
+end
+
+---Called on start work area processing
+function ManureGroundDepositor:onStartWorkAreaProcessing()
+  if not self.isServer then
+    return
+  end
+
+  local spec = self.spec_manureGroundDepositor
+  local sprayerSpec = self.spec_sprayer
+  local parameters = sprayerSpec.workAreaParameters
+
+  table.clear(spec.applicationAreas)
+  spec.sourceVehicle = nil
+  spec.sourceFillUnitIndex = nil
+  spec.sourceFillLevel = 0
+  spec.externalUsage = 0
+  spec.fieldPixels = 0
+  spec.totalPixels = 0
+
+  local sprayFillType = parameters.sprayFillType
+  local isSeparatedManure = FillType.SEPARATED_MANURE ~= nil and sprayFillType == FillType.SEPARATED_MANURE
+
+  if not isSeparatedManure and (not sprayerSpec.isManureSpreader or sprayFillType ~= FillType.MANURE) then
+    spec.fieldRemainderLiters = 0
+    return
+  end
+
+  local sourceVehicle = parameters.sprayVehicle
+  local sourceFillUnitIndex = parameters.sprayVehicleFillUnitIndex
+
+  if sourceVehicle == nil or sourceFillUnitIndex == nil then
+    if self:getIsAIActive() and self:getIsSprayerExternallyFilled() and parameters.usage > 0 then
+      spec.externalUsage = parameters.usage
+    else
+      spec.fieldRemainderLiters = 0
+      return
+    end
+  else
+    if sourceVehicle:getFillUnitFillType(sourceFillUnitIndex) ~= sprayFillType then
+      spec.fieldRemainderLiters = 0
+      return
+    end
+
+    spec.sourceVehicle = sourceVehicle
+    spec.sourceFillUnitIndex = sourceFillUnitIndex
+    spec.sourceFillLevel = sourceVehicle:getFillUnitFillLevel(sourceFillUnitIndex)
+  end
+
+  if spec.minimumPlacementLiters <= 0 and spec.groundFillType ~= nil and g_densityMapHeightManager ~= nil and g_densityMapHeightManager:getIsValid() then
+    spec.minimumPlacementLiters = math.max(6, g_densityMapHeightManager:getMinValidLiterValue(spec.groundFillType))
+  end
+end
+
+---Called on end work area processing
+function ManureGroundDepositor:onEndWorkAreaProcessing(_, _)
+  self:finishConsumptionTracking()
 end
