@@ -17,6 +17,9 @@ body:
       label: Version
       description: Select the version of the modification where you encountered the issue.
       options:
+        - 1.0.3.0
+        - 1.0.2.0
+        - 1.0.1.0
         - 1.0.0.0
       default: 0
     validations:
